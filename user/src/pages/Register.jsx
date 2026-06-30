@@ -26,7 +26,7 @@ const Register = () => {
   }
 
   return (
-    <div className="mx-auto flex max-w-md flex-col px-4 py-16">
+    <div className="mx-auto flex max-w-md flex-col px-4 py-10 sm:py-16">
       <div className="mb-6 text-center">
         <span className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl brand-gradient text-white">
           <Sparkles className="h-6 w-6" />

@@ -14,12 +14,12 @@ const Navbar = () => {
 
   return (
     <header className="sticky top-0 z-40 border-b border-slate-100 bg-white/90 backdrop-blur">
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
-        <Link to="/" className="flex items-center gap-2">
-          <span className="flex h-9 w-9 items-center justify-center rounded-xl brand-gradient text-white">
+      <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6">
+        <Link to="/" className="flex min-w-0 items-center gap-2">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl brand-gradient text-white">
             <Sparkles className="h-5 w-5" />
           </span>
-          <span className="text-xl font-bold brand-text">UrbanEase</span>
+          <span className="truncate text-lg font-bold brand-text sm:text-xl">UrbanEase</span>
         </Link>
 
         <nav className="hidden items-center gap-1 md:flex">
@@ -66,29 +66,34 @@ const Navbar = () => {
           )}
         </div>
 
-        <button className="md:hidden" onClick={() => setOpen(!open)}>
+        <button
+          type="button"
+          className="-mr-2 rounded-lg p-2 md:hidden"
+          onClick={() => setOpen(!open)}
+          aria-label={open ? 'Close menu' : 'Open menu'}
+        >
           {open ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
         </button>
       </div>
 
       {open && (
-        <div className="border-t border-slate-100 bg-white px-4 py-3 md:hidden">
+        <div className="border-t border-slate-100 bg-white px-4 py-3 sm:px-6 md:hidden">
           {links.map((l) => (
             <Link
               key={l.to}
               to={l.to}
               onClick={() => setOpen(false)}
-              className="block rounded-lg px-3 py-2 text-sm font-medium text-slate-700"
+              className="block rounded-lg px-3 py-3 text-sm font-medium text-slate-700"
             >
               {l.label}
             </Link>
           ))}
           {user ? (
             <>
-              <Link to="/bookings" onClick={() => setOpen(false)} className="block rounded-lg px-3 py-2 text-sm font-medium text-slate-700">
+              <Link to="/bookings" onClick={() => setOpen(false)} className="block rounded-lg px-3 py-3 text-sm font-medium text-slate-700">
                 My Bookings
               </Link>
-              <Link to="/profile" onClick={() => setOpen(false)} className="block rounded-lg px-3 py-2 text-sm font-medium text-slate-700">
+              <Link to="/profile" onClick={() => setOpen(false)} className="block rounded-lg px-3 py-3 text-sm font-medium text-slate-700">
                 Profile
               </Link>
             </>

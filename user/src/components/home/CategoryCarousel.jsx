@@ -16,13 +16,13 @@ const CategoryCarousel = ({ categories }) => {
   if (!categories?.length) return null
 
   return (
-    <section className="mx-auto max-w-6xl px-4 py-14">
-      <div className="flex items-end justify-between">
-        <div>
+    <section className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-14">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div className="min-w-0">
           <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">What we offer</p>
-          <h2 className="mt-1 text-2xl font-bold text-slate-900 sm:text-3xl">Browse by category</h2>
+          <h2 className="mt-1 text-xl font-bold text-slate-900 sm:text-2xl md:text-3xl">Browse by category</h2>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center gap-2 self-start sm:self-auto">
           <button
             type="button"
             onClick={() => scrollCarousel(-1)}
@@ -50,7 +50,7 @@ const CategoryCarousel = ({ categories }) => {
           <Link
             key={cat._id}
             to={`/services?category=${cat._id}`}
-            className="group relative block aspect-[4/3] w-[70%] shrink-0 snap-start overflow-hidden rounded-2xl border border-slate-100 shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl sm:w-[40%] lg:w-[23%]"
+            className="group relative block aspect-[4/3] w-[85%] shrink-0 snap-start overflow-hidden rounded-2xl border border-slate-100 shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl sm:w-[55%] md:w-[38%] lg:w-[30%] xl:w-[23%]"
           >
             <img
               src={cat.image || CAT_FALLBACK}

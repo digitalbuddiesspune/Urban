@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import {
   User,
@@ -14,6 +14,7 @@ import {
   CheckCircle2,
   Wallet,
   Home,
+  LogOut,
 } from 'lucide-react'
 import api from '../api/axios.js'
 import { useAuth } from '../context/AuthContext.jsx'
@@ -44,7 +45,8 @@ const StatTile = ({ icon: Icon, label, value, tint }) => {
 }
 
 const Profile = () => {
-  const { user, refreshProfile } = useAuth()
+  const { user, refreshProfile, logout } = useAuth()
+  const navigate = useNavigate()
   const [tab, setTab] = useState('overview')
   const [form, setForm] = useState({ name: user?.name || '', phone: user?.phone || '' })
   const [pwd, setPwd] = useState({ currentPassword: '', newPassword: '' })
@@ -129,6 +131,12 @@ const Profile = () => {
     }
   }
 
+  const handleLogout = () => {
+    logout()
+    toast.success('Logged out successfully')
+    navigate('/')
+  }
+
   const tabs = [
     { id: 'overview', label: 'Overview', icon: User },
     { id: 'edit', label: 'Edit Profile', icon: User },
@@ -139,11 +147,11 @@ const Profile = () => {
   if (loading) return <PageLoader />
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-8">
+    <div className="mx-auto max-w-4xl px-4 py-6 sm:px-6 sm:py-8">
       {/* Profile header */}
       <div className="card overflow-hidden">
         <div className="brand-gradient h-24" />
-        <div className="px-6 pb-6">
+        <div className="px-4 pb-6 sm:px-6">
           <div className="-mt-10 flex flex-col items-start gap-4 sm:flex-row sm:items-end">
             <div className="flex h-20 w-20 items-center justify-center rounded-2xl border-4 border-white bg-violet-600 text-2xl font-bold text-white shadow">
               {user?.name?.[0]?.toUpperCase() || 'U'}
@@ -171,7 +179,7 @@ const Profile = () => {
       </div>
 
       {/* Tabs */}
-      <div className="mt-6 flex gap-2 overflow-x-auto border-b border-slate-200">
+      <div className="mt-6 flex gap-1 overflow-x-auto border-b border-slate-200 pb-px [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {tabs.map((t) => (
           <button
             key={t.id}
@@ -187,7 +195,7 @@ const Profile = () => {
 
       {tab === 'overview' && (
         <div className="mt-6 space-y-6">
-          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-2 lg:grid-cols-4">
             <StatTile icon={CalendarCheck} label="Total Bookings" value={stats.total} tint="violet" />
             <StatTile icon={CheckCircle2} label="Completed" value={stats.completed} tint="green" />
             <StatTile icon={Wallet} label="Total Spent" value={formatCurrency(stats.spent)} tint="blue" />
@@ -236,7 +244,7 @@ const Profile = () => {
             ) : (
               <div className="mt-4 space-y-3">
                 {bookings.slice(0, 3).map((b) => (
-                  <div key={b._id} className="flex items-center justify-between rounded-xl border border-slate-100 p-3">
+                  <div key={b._id} className="flex flex-col gap-2 rounded-xl border border-slate-100 p-3 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                       <p className="text-sm font-medium text-slate-800">{b.serviceId?.title || 'Service'}</p>
                       <p className="text-xs text-slate-400">
@@ -296,7 +304,7 @@ const Profile = () => {
             <h3 className="flex items-center gap-2 font-semibold text-slate-800">
               <Plus className="h-4 w-4" /> Add new address
             </h3>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <input className="input col-span-2" placeholder="Label (Home/Office)" value={newAddr.label} onChange={(e) => setNewAddr({ ...newAddr, label: e.target.value })} />
               <input className="input col-span-2" placeholder="Address line 1" required value={newAddr.line1} onChange={(e) => setNewAddr({ ...newAddr, line1: e.target.value })} />
               <input className="input" placeholder="City" required value={newAddr.city} onChange={(e) => setNewAddr({ ...newAddr, city: e.target.value })} />
@@ -332,6 +340,20 @@ const Profile = () => {
         onConfirm={deleteAddress}
         onClose={() => setDelTarget(null)}
       />
+
+      <div className="card mt-8 flex flex-col items-start justify-between gap-4 p-5 sm:flex-row sm:items-center">
+        <div>
+          <p className="font-semibold text-slate-900">Log out</p>
+          <p className="mt-0.5 text-sm text-slate-500">Sign out of your UrbanEase account on this device.</p>
+        </div>
+        <button
+          type="button"
+          onClick={handleLogout}
+          className="flex w-full items-center justify-center gap-2 rounded-xl border border-slate-300 px-5 py-2.5 text-sm font-semibold text-slate-800 transition hover:border-black hover:bg-black hover:text-white sm:w-auto"
+        >
+          <LogOut className="h-4 w-4" /> Logout
+        </button>
+      </div>
     </div>
   )
 }

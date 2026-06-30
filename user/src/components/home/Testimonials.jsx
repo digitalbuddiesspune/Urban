@@ -53,7 +53,7 @@ const TESTIMONIALS = [
 ]
 
 const TestimonialCard = ({ item }) => (
-  <article className="testimonial-card mx-3 w-[min(100%,340px)] shrink-0 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+  <article className="testimonial-card mx-2 w-[min(100%,300px)] shrink-0 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:mx-3 sm:w-[min(100%,340px)] sm:p-6">
     <Quote className="h-8 w-8 text-slate-200" aria-hidden />
     <p className="mt-3 line-clamp-4 text-sm leading-relaxed text-slate-600">"{item.text}"</p>
     <div className="mt-5 flex items-center gap-1">
@@ -78,8 +78,8 @@ const Testimonials = () => {
   const track = [...TESTIMONIALS, ...TESTIMONIALS]
 
   return (
-    <section className="overflow-hidden bg-slate-50 py-16">
-      <div className="mx-auto max-w-6xl px-4">
+    <section className="overflow-hidden bg-slate-50 py-10 sm:py-16">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <div className="text-center">
           <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Client stories</p>
           <h2 className="mt-1 text-2xl font-bold text-slate-900 sm:text-3xl">What our customers say</h2>

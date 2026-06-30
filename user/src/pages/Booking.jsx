@@ -81,14 +81,40 @@ const Booking = () => {
     }
   }
 
+  const orderSummary = (
+    <div className="card p-5">
+      <h2 className="font-semibold text-slate-800">Order summary</h2>
+      <div className="mt-4 flex justify-between gap-4 text-sm text-slate-600">
+        <span className="min-w-0">{service.title}</span>
+        <span className="shrink-0">{formatCurrency(price)}</span>
+      </div>
+      <div className="mt-2 flex justify-between text-sm text-slate-600">
+        <span>Taxes & fees</span>
+        <span>Included</span>
+      </div>
+      <div className="my-4 border-t border-slate-100" />
+      <div className="flex justify-between font-bold text-slate-900">
+        <span>Total</span>
+        <span>{formatCurrency(price)}</span>
+      </div>
+      <button
+        type="submit"
+        disabled={submitting}
+        className="btn-primary mt-5 hidden w-full items-center justify-center gap-2 py-3 lg:flex"
+      >
+        {submitting && <Spinner className="h-4 w-4" />} Confirm booking
+      </button>
+    </div>
+  )
+
   return (
-    <div className="mx-auto max-w-4xl px-4 py-8">
-      <h1 className="text-2xl font-bold text-slate-900">Confirm your booking</h1>
+    <div className="mx-auto max-w-4xl px-4 py-6 pb-28 sm:px-6 sm:py-8 lg:pb-8">
+      <h1 className="text-xl font-bold text-slate-900 sm:text-2xl">Confirm your booking</h1>
       <p className="text-sm text-slate-500">{service.title}</p>
 
-      <form onSubmit={submit} className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[1fr_320px]">
-        <div className="space-y-6">
-          <div className="card p-5">
+      <form onSubmit={submit} className="mt-5 grid grid-cols-1 gap-5 sm:mt-6 sm:gap-6 lg:grid-cols-[1fr_320px]">
+        <div className="order-2 space-y-5 sm:space-y-6 lg:order-1">
+          <div className="card p-4 sm:p-5">
             <h2 className="flex items-center gap-2 font-semibold text-slate-800">
               <Calendar className="h-4 w-4" /> Select date
             </h2>
@@ -102,13 +128,13 @@ const Booking = () => {
             <h2 className="mt-5 flex items-center gap-2 font-semibold text-slate-800">
               <Clock className="h-4 w-4" /> Select time
             </h2>
-            <div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-5">
+            <div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-5">
               {TIME_SLOTS.map((t) => (
                 <button
                   key={t}
                   type="button"
                   onClick={() => setForm({ ...form, bookingTime: t })}
-                  className={`rounded-lg border py-2 text-sm font-medium ${
+                  className={`min-h-[44px] rounded-lg border py-2 text-sm font-medium ${
                     form.bookingTime === t
                       ? 'border-violet-500 bg-violet-50 text-violet-700'
                       : 'border-slate-200 text-slate-600 hover:border-violet-300'
@@ -120,8 +146,8 @@ const Booking = () => {
             </div>
           </div>
 
-          <div className="card p-5">
-            <div className="flex items-center justify-between">
+          <div className="card p-4 sm:p-5">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <h2 className="flex items-center gap-2 font-semibold text-slate-800">
                 <MapPin className="h-4 w-4" /> Service address
               </h2>
@@ -129,7 +155,7 @@ const Booking = () => {
                 <button
                   type="button"
                   onClick={() => setUseNew(!useNew)}
-                  className="flex items-center gap-1 text-sm font-medium text-violet-700"
+                  className="flex items-center gap-1 self-start text-sm font-medium text-violet-700 sm:self-auto"
                 >
                   <Plus className="h-4 w-4" /> {useNew ? 'Use saved' : 'New address'}
                 </button>
@@ -152,7 +178,7 @@ const Booking = () => {
                       onChange={() => setSelectedAddr(a._id)}
                       className="mt-1"
                     />
-                    <div className="text-sm">
+                    <div className="min-w-0 text-sm">
                       <span className="font-medium text-slate-800">{a.label}</span>
                       <p className="text-slate-500">
                         {a.line1}, {a.city}, {a.state} - {a.pincode}
@@ -162,25 +188,25 @@ const Booking = () => {
                 ))}
               </div>
             ) : (
-              <div className="mt-3 grid grid-cols-2 gap-3">
-                <input className="input col-span-2" placeholder="Address line 1" value={newAddr.line1} onChange={(e) => setNewAddr({ ...newAddr, line1: e.target.value })} />
-                <input className="input col-span-2" placeholder="Address line 2 (optional)" value={newAddr.line2} onChange={(e) => setNewAddr({ ...newAddr, line2: e.target.value })} />
+              <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <input className="input sm:col-span-2" placeholder="Address line 1" value={newAddr.line1} onChange={(e) => setNewAddr({ ...newAddr, line1: e.target.value })} />
+                <input className="input sm:col-span-2" placeholder="Address line 2 (optional)" value={newAddr.line2} onChange={(e) => setNewAddr({ ...newAddr, line2: e.target.value })} />
                 <input className="input" placeholder="City" value={newAddr.city} onChange={(e) => setNewAddr({ ...newAddr, city: e.target.value })} />
                 <input className="input" placeholder="State" value={newAddr.state} onChange={(e) => setNewAddr({ ...newAddr, state: e.target.value })} />
-                <input className="input" placeholder="Pincode" value={newAddr.pincode} onChange={(e) => setNewAddr({ ...newAddr, pincode: e.target.value })} />
+                <input className="input sm:col-span-2" placeholder="Pincode" value={newAddr.pincode} onChange={(e) => setNewAddr({ ...newAddr, pincode: e.target.value })} />
               </div>
             )}
           </div>
 
-          <div className="card p-5">
+          <div className="card p-4 sm:p-5">
             <h2 className="font-semibold text-slate-800">Payment method</h2>
-            <div className="mt-3 flex gap-3">
+            <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:gap-3">
               {['cash', 'online'].map((m) => (
                 <button
                   key={m}
                   type="button"
                   onClick={() => setForm({ ...form, paymentMethod: m })}
-                  className={`flex-1 rounded-xl border py-2.5 text-sm font-medium capitalize ${
+                  className={`min-h-[44px] flex-1 rounded-xl border py-2.5 text-sm font-medium capitalize ${
                     form.paymentMethod === m
                       ? 'border-violet-500 bg-violet-50 text-violet-700'
                       : 'border-slate-200 text-slate-600'
@@ -200,28 +226,25 @@ const Booking = () => {
           </div>
         </div>
 
-        <div className="lg:sticky lg:top-24 lg:h-fit">
-          <div className="card p-5">
-            <h2 className="font-semibold text-slate-800">Order summary</h2>
-            <div className="mt-4 flex justify-between text-sm text-slate-600">
-              <span>{service.title}</span>
-              <span>{formatCurrency(price)}</span>
-            </div>
-            <div className="mt-2 flex justify-between text-sm text-slate-600">
-              <span>Taxes & fees</span>
-              <span>Included</span>
-            </div>
-            <div className="my-4 border-t border-slate-100" />
-            <div className="flex justify-between font-bold text-slate-900">
-              <span>Total</span>
-              <span>{formatCurrency(price)}</span>
-            </div>
-            <button disabled={submitting} className="btn-primary mt-5 flex w-full items-center justify-center gap-2 py-3">
-              {submitting && <Spinner className="h-4 w-4" />} Confirm booking
-            </button>
-          </div>
-        </div>
+        <div className="order-1 lg:sticky lg:top-24 lg:order-2 lg:h-fit">{orderSummary}</div>
       </form>
+
+      <div className="safe-bottom fixed bottom-0 left-0 right-0 z-30 border-t border-slate-200 bg-white/95 p-4 backdrop-blur lg:hidden">
+        <div className="mx-auto flex max-w-4xl items-center gap-4">
+          <div className="min-w-0 shrink-0">
+            <p className="text-xs text-slate-500">Total</p>
+            <p className="text-lg font-bold text-slate-900">{formatCurrency(price)}</p>
+          </div>
+          <button
+            type="button"
+            disabled={submitting}
+            onClick={submit}
+            className="btn-primary flex min-h-[44px] flex-1 items-center justify-center gap-2 py-3"
+          >
+            {submitting && <Spinner className="h-4 w-4" />} Confirm booking
+          </button>
+        </div>
+      </div>
     </div>
   )
 }

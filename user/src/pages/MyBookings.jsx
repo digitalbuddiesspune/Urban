@@ -91,8 +91,8 @@ const MyBookings = () => {
   if (loading) return <PageLoader />
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-8">
-      <h1 className="text-2xl font-bold text-slate-900">My bookings</h1>
+    <div className="mx-auto max-w-4xl px-4 py-6 sm:px-6 sm:py-8">
+      <h1 className="text-xl font-bold text-slate-900 sm:text-2xl">My bookings</h1>
 
       {bookings.length === 0 ? (
         <EmptyState
@@ -108,9 +108,9 @@ const MyBookings = () => {
       ) : (
         <div className="mt-6 space-y-4">
           {bookings.map((b) => (
-            <div key={b._id} className="card p-5">
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div>
+            <div key={b._id} className="card p-4 sm:p-5">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div className="min-w-0">
                   <h3 className="font-semibold text-slate-900">{b.serviceId?.title || 'Service'}</h3>
                   <p className="text-sm text-slate-500">
                     {b.vendorId?.businessName || b.vendorId?.name}
@@ -119,10 +119,12 @@ const MyBookings = () => {
                     {formatDate(b.bookingDate)} at {b.bookingTime}
                   </p>
                 </div>
-                <div className="text-right">
+                <div className="flex items-center justify-between gap-3 sm:flex-col sm:items-end sm:text-right">
                   <StatusBadge status={b.bookingStatus} />
-                  <p className="mt-2 font-bold text-slate-900">{formatCurrency(b.price)}</p>
-                  <p className="text-xs text-slate-400 capitalize">{b.paymentMethod} · {b.paymentStatus}</p>
+                  <div>
+                    <p className="font-bold text-slate-900">{formatCurrency(b.price)}</p>
+                    <p className="text-xs text-slate-400 capitalize">{b.paymentMethod} · {b.paymentStatus}</p>
+                  </div>
                 </div>
               </div>
 

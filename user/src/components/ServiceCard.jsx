@@ -8,7 +8,7 @@ const ServiceCard = ({ service }) => {
   const price = service.discountPrice > 0 ? service.discountPrice : service.price
   return (
     <Link to={`/services/${service._id}`} className="card group overflow-hidden transition hover:-translate-y-1 hover:shadow-lg">
-      <div className="relative h-44 overflow-hidden bg-slate-100">
+      <div className="relative h-40 overflow-hidden bg-slate-100 sm:h-44">
         <img
           src={service.images?.[0] || FALLBACK}
           alt={service.title}
