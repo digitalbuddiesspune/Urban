@@ -14,7 +14,23 @@ connectDB()
 
 const app = express()
 
-app.use(cors())
+const allowedOrigins = (process.env.CORS_ORIGIN || '')
+  .split(',')
+  .map((o) => o.trim())
+  .filter(Boolean)
+
+const corsOptions = {
+  origin: (origin, callback) => {
+    // Allow non-browser requests (no origin) and any origin when none configured
+    if (!origin || allowedOrigins.length === 0 || allowedOrigins.includes(origin)) {
+      return callback(null, true)
+    }
+    return callback(new Error(`Not allowed by CORS: ${origin}`))
+  },
+  credentials: true,
+}
+
+app.use(cors(corsOptions))
 app.use(express.json())
 
 app.get('/', (req, res) => {
