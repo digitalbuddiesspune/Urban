@@ -24,15 +24,26 @@ const COLORS = ['#6d28d9', '#2563eb', '#0891b2', '#16a34a', '#d97706', '#dc2626'
 const Dashboard = () => {
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
 
   useEffect(() => {
     api
       .get('/admin/dashboard')
       .then((r) => setData(r.data))
+      .catch((err) => setError(err.message || 'Failed to load dashboard'))
       .finally(() => setLoading(false))
   }, [])
 
   if (loading) return <PageLoader />
+
+  if (error || !data) {
+    return (
+      <div className="card p-8 text-center">
+        <p className="font-semibold text-slate-900">Could not load dashboard</p>
+        <p className="mt-2 text-sm text-slate-500">{error || 'Unknown error'}</p>
+      </div>
+    )
+  }
 
   const { stats, recentBookings } = data
 

@@ -16,30 +16,40 @@ connectDB()
 
 const app = express()
 
+const isProd = process.env.NODE_ENV === 'production'
+
 const allowedOrigins = (process.env.CORS_ORIGIN || '')
   .split(',')
   .map((o) => o.trim())
   .filter(Boolean)
 
 const corsOptions = {
-  origin: (origin, callback) => {
-    // Allow non-browser requests (Postman, server-to-server) and any origin when none configured
-    if (!origin || allowedOrigins.length === 0 || allowedOrigins.includes(origin)) {
-      return callback(null, true)
-    }
-    console.warn(`CORS blocked origin: ${origin}`)
-    return callback(null, false)
-  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   optionsSuccessStatus: 204,
+  ...(isProd
+    ? {
+        origin: (origin, callback) => {
+          if (!origin || allowedOrigins.includes(origin)) {
+            return callback(null, true)
+          }
+          console.warn(`CORS blocked origin: ${origin}`)
+          return callback(null, false)
+        },
+      }
+    : {
+        // Development: allow any origin (localhost ports change when Vite bumps 5175 → 5176, etc.)
+        origin: true,
+      }),
 }
 
 app.use(cors(corsOptions))
+app.options(/.*/, cors(corsOptions))
 app.use(express.json())
 
-if (allowedOrigins.length) {
+console.log(`NODE_ENV=${process.env.NODE_ENV || 'undefined'} | CORS: ${isProd ? 'strict allowlist' : 'all origins allowed'}`)
+if (isProd && allowedOrigins.length) {
   console.log('CORS allowed origins:', allowedOrigins.join(', '))
 }
 
