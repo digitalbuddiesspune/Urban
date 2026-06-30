@@ -21,17 +21,22 @@ const allowedOrigins = (process.env.CORS_ORIGIN || '')
 
 const corsOptions = {
   origin: (origin, callback) => {
-    // Allow non-browser requests (no origin) and any origin when none configured
+    // Allow non-browser requests (Postman, server-to-server) and any origin when none configured
     if (!origin || allowedOrigins.length === 0 || allowedOrigins.includes(origin)) {
       return callback(null, true)
     }
-    return callback(new Error(`Not allowed by CORS: ${origin}`))
+    console.warn(`CORS blocked origin: ${origin}`)
+    return callback(null, false)
   },
   credentials: true,
 }
 
 app.use(cors(corsOptions))
 app.use(express.json())
+
+if (allowedOrigins.length) {
+  console.log('CORS allowed origins:', allowedOrigins.join(', '))
+}
 
 app.get('/', (req, res) => {
   res.json({ success: true, message: 'UrbanEase API is running' })
