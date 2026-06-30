@@ -2,6 +2,7 @@ import 'dotenv/config'
 import express from 'express'
 import cors from 'cors'
 import connectDB from './config/db.js'
+import { validateEnv } from './config/validateEnv.js'
 import { notFound, errorHandler } from './middleware/errorMiddleware.js'
 
 import authRoutes from './routes/authRoutes.js'
@@ -10,6 +11,7 @@ import categoryRoutes from './routes/categoryRoutes.js'
 import vendorRoutes from './routes/vendorRoutes.js'
 import userRoutes from './routes/userRoutes.js'
 
+validateEnv()
 connectDB()
 
 const app = express()
@@ -29,6 +31,9 @@ const corsOptions = {
     return callback(null, false)
   },
   credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  optionsSuccessStatus: 204,
 }
 
 app.use(cors(corsOptions))

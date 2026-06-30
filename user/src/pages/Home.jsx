@@ -4,6 +4,7 @@ import { PageLoader } from '../components/ui/Loader.jsx'
 import Hero from '../components/home/Hero.jsx'
 import CategoryCarousel from '../components/home/CategoryCarousel.jsx'
 import PopularServices from '../components/home/PopularServices.jsx'
+import Testimonials from '../components/home/Testimonials.jsx'
 
 const Home = () => {
   const [categories, setCategories] = useState([])
@@ -26,6 +27,7 @@ const Home = () => {
       <Hero />
       <CategoryCarousel categories={categories} />
       <PopularServices services={services} />
+      <Testimonials />
     </div>
   )
 }
