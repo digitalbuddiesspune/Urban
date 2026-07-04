@@ -9,32 +9,32 @@ const categories = [
   {
     name: 'AC Repair',
     description: 'AC installation, servicing and repair by experts',
-    image: 'https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=600',
+    image: 'https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=800&q=80',
   },
   {
     name: 'Electrician',
     description: 'Wiring, switches, fans and electrical fixes',
-    image: 'https://images.unsplash.com/photo-1621905251918-48416bd8575a?w=600',
+    image: 'https://images.unsplash.com/photo-1621905252507-b35492cc74b4?w=800&q=80',
   },
   {
     name: 'Plumbing',
     description: 'Taps, pipes, leakage and bathroom fittings',
-    image: 'https://images.unsplash.com/photo-1607472586893-edb57bdc0e39?w=600',
+    image: 'https://images.unsplash.com/photo-1607472586893-edb57bdc0e39?w=800&q=80',
   },
   {
     name: 'Home Cleaning',
     description: 'Deep cleaning for home, kitchen and bathroom',
-    image: 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=600',
+    image: 'https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=800&q=80',
   },
   {
     name: 'Salon at Home',
     description: 'Salon and grooming services at your doorstep',
-    image: 'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=600',
+    image: 'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=800&q=80',
   },
   {
     name: 'Appliance Repair',
     description: 'Microwave, washing machine and appliance repair',
-    image: 'https://images.unsplash.com/photo-1610557892470-55d9e80c0bce?w=600',
+    image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80',
   },
 ]
 
@@ -65,13 +65,14 @@ const seed = async () => {
       console.log('Admin already exists')
     }
 
-    // Categories
+    // Categories — upsert so images stay in sync on re-seed
     for (const cat of categories) {
-      const exists = await Category.findOne({ name: cat.name })
-      if (!exists) {
-        await Category.create({ ...cat, slug: slugify(cat.name) })
-        console.log(`Category created -> ${cat.name}`)
-      }
+      const result = await Category.findOneAndUpdate(
+        { name: cat.name },
+        { ...cat, slug: slugify(cat.name) },
+        { upsert: true, new: true, setDefaultsOnInsert: true },
+      )
+      console.log(`Category synced -> ${result.name}`)
     }
 
     // Optional demo vendor (only if configured in .env)

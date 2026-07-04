@@ -2,7 +2,18 @@ import { useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react'
 
-const CAT_FALLBACK = 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=600'
+const CAT_FALLBACK = 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=800&q=80'
+
+const CATEGORY_IMAGES = {
+  'AC Repair': 'https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=800&q=80',
+  Electrician: 'https://images.unsplash.com/photo-1621905252507-b35492cc74b4?w=800&q=80',
+  Plumbing: 'https://images.unsplash.com/photo-1607472586893-edb57bdc0e39?w=800&q=80',
+  'Home Cleaning': 'https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=800&q=80',
+  'Salon at Home': 'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=800&q=80',
+  'Appliance Repair': 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80',
+}
+
+const getCategoryImage = (cat) => CATEGORY_IMAGES[cat.name] || cat.image || CAT_FALLBACK
 
 const CategoryCarousel = ({ categories }) => {
   const carouselRef = useRef(null)
@@ -53,8 +64,12 @@ const CategoryCarousel = ({ categories }) => {
             className="group relative block aspect-[4/3] w-[85%] shrink-0 snap-start overflow-hidden rounded-2xl border border-slate-100 shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl sm:w-[55%] md:w-[38%] lg:w-[30%] xl:w-[23%]"
           >
             <img
-              src={cat.image || CAT_FALLBACK}
+              src={getCategoryImage(cat)}
               alt={cat.name}
+              loading="lazy"
+              onError={(e) => {
+                if (!e.currentTarget.src.includes(CAT_FALLBACK)) e.currentTarget.src = CAT_FALLBACK
+              }}
               className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-110"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-transparent" />
