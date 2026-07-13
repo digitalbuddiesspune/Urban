@@ -5,7 +5,7 @@ import api from '../api/axios.js'
 import { PageLoader } from '../components/ui/Loader.jsx'
 import EmptyState from '../components/ui/EmptyState.jsx'
 import StatusBadge from '../components/ui/StatusBadge.jsx'
-import { formatCurrency, formatDate, statusLabel } from '../utils/helpers.js'
+import { formatCurrency, formatDate, statusLabel, STATUS_STYLES } from '../utils/helpers.js'
 
 const NEXT_STATUS = {
   pending: ['accepted', 'rejected'],
@@ -89,8 +89,13 @@ const Bookings = () => {
                 </div>
                 <div className="text-right">
                   <StatusBadge status={b.bookingStatus} />
-                  <p className="mt-2 font-bold text-slate-900">{formatCurrency(b.price)}</p>
-                  <p className="text-xs text-slate-400 capitalize">{b.paymentMethod} · {b.paymentStatus}</p>
+                  <p className="mt-2 font-bold text-green-600">{formatCurrency(b.price)}</p>
+                  <p className="text-xs text-slate-400 capitalize">
+                    {b.paymentMethod} ·{' '}
+                    <span className={`inline-flex rounded-full px-2 py-0.5 font-semibold ${STATUS_STYLES[b.paymentStatus] || 'bg-slate-100 text-slate-700'}`}>
+                      {statusLabel(b.paymentStatus)}
+                    </span>
+                  </p>
                 </div>
               </div>
 

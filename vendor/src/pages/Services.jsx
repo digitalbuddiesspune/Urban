@@ -173,12 +173,12 @@ const Services = () => {
               <div className="p-4">
                 <div className="flex items-start justify-between">
                   <div>
-                    <p className="text-xs text-violet-600">{s.categoryId?.name}</p>
+                    <p className="text-xs text-slate-600">{s.categoryId?.name}</p>
                     <h3 className="font-semibold text-slate-800">{s.title}</h3>
                   </div>
                   <StatusBadge status={s.status} />
                 </div>
-                <p className="mt-2 font-bold text-slate-900">{formatCurrency(s.discountPrice > 0 ? s.discountPrice : s.price)}</p>
+                <p className="mt-2 font-bold text-green-600">{formatCurrency(s.discountPrice > 0 ? s.discountPrice : s.price)}</p>
                 <div className="mt-3 flex gap-2">
                   <button
                     onClick={() => {

@@ -5,7 +5,7 @@ import api from '../api/axios.js'
 import { PageLoader } from '../components/ui/Loader.jsx'
 import EmptyState from '../components/ui/EmptyState.jsx'
 import StatusBadge from '../components/ui/StatusBadge.jsx'
-import { formatCurrency, formatDate, statusLabel } from '../utils/helpers.js'
+import { formatCurrency, formatDate, statusLabel, STATUS_STYLES } from '../utils/helpers.js'
 
 const BOOKING_STATUSES = [
   'pending',
@@ -89,12 +89,12 @@ const Bookings = () => {
                   <td className="p-4 text-slate-600">{b.vendorId?.businessName || b.vendorId?.name}</td>
                   <td className="p-4 text-slate-600">{b.serviceId?.title}</td>
                   <td className="p-4 text-slate-500">{formatDate(b.bookingDate)}</td>
-                  <td className="p-4 font-medium text-slate-700">{formatCurrency(b.price)}</td>
+                  <td className="p-4 font-semibold text-green-600">{formatCurrency(b.price)}</td>
                   <td className="p-4">
                     <select
                       value={b.bookingStatus}
                       onChange={(e) => update(b._id, 'bookingStatus', e.target.value)}
-                      className="rounded-lg border border-slate-200 px-2 py-1 text-xs"
+                      className={`rounded-lg border-0 px-2.5 py-1 text-xs font-semibold ${STATUS_STYLES[b.bookingStatus] || 'bg-slate-100 text-slate-700'}`}
                     >
                       {BOOKING_STATUSES.map((s) => (
                         <option key={s} value={s}>
@@ -107,7 +107,7 @@ const Bookings = () => {
                     <select
                       value={b.paymentStatus}
                       onChange={(e) => update(b._id, 'paymentStatus', e.target.value)}
-                      className="rounded-lg border border-slate-200 px-2 py-1 text-xs"
+                      className={`rounded-lg border-0 px-2.5 py-1 text-xs font-semibold ${STATUS_STYLES[b.paymentStatus] || 'bg-slate-100 text-slate-700'}`}
                     >
                       {PAYMENT_STATUSES.map((s) => (
                         <option key={s} value={s}>

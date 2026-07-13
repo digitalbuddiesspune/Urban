@@ -19,7 +19,7 @@ import StatusBadge from '../components/ui/StatusBadge.jsx'
 import EmptyState from '../components/ui/EmptyState.jsx'
 import { formatCurrency, formatDate } from '../utils/helpers.js'
 
-const COLORS = ['#6d28d9', '#2563eb', '#0891b2', '#16a34a', '#d97706', '#dc2626']
+const COLORS = ['#d97706', '#16a34a', '#94a3b8']
 
 const Dashboard = () => {
   const [data, setData] = useState(null)
@@ -81,11 +81,11 @@ const Dashboard = () => {
           <div className="mt-4 h-64">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={barData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5e5e5" />
                 <XAxis dataKey="name" tick={{ fontSize: 12 }} />
                 <YAxis tick={{ fontSize: 12 }} allowDecimals={false} />
                 <Tooltip />
-                <Bar dataKey="value" radius={[6, 6, 0, 0]} fill="#6d28d9" />
+                <Bar dataKey="value" radius={[6, 6, 0, 0]} fill="#171717" />
               </BarChart>
             </ResponsiveContainer>
           </div>

@@ -77,7 +77,7 @@ const Services = () => {
                   <td className="p-4 font-medium text-slate-800">{s.title}</td>
                   <td className="p-4 text-slate-600">{s.vendorId?.businessName || s.vendorId?.name}</td>
                   <td className="p-4 text-slate-500">{s.categoryId?.name}</td>
-                  <td className="p-4 text-slate-700">{formatCurrency(s.price)}</td>
+                  <td className="p-4 font-semibold text-green-600">{formatCurrency(s.price)}</td>
                   <td className="p-4">
                     <StatusBadge status={s.status} />
                   </td>

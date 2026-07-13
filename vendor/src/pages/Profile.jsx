@@ -55,13 +55,13 @@ const Profile = () => {
       <div className="mt-6 flex gap-2 border-b border-slate-200">
         <button
           onClick={() => setTab('profile')}
-          className={`border-b-2 px-4 py-2.5 text-sm font-medium ${tab === 'profile' ? 'border-violet-600 text-violet-700' : 'border-transparent text-slate-500'}`}
+          className={`border-b-2 px-4 py-2.5 text-sm font-medium ${tab === 'profile' ? 'border-black text-black' : 'border-transparent text-slate-500'}`}
         >
           Business info
         </button>
         <button
           onClick={() => setTab('security')}
-          className={`border-b-2 px-4 py-2.5 text-sm font-medium ${tab === 'security' ? 'border-violet-600 text-violet-700' : 'border-transparent text-slate-500'}`}
+          className={`border-b-2 px-4 py-2.5 text-sm font-medium ${tab === 'security' ? 'border-black text-black' : 'border-transparent text-slate-500'}`}
         >
           Security
         </button>

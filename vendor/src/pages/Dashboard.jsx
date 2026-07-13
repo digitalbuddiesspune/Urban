@@ -65,7 +65,7 @@ const Dashboard = () => {
                     <td className="py-3 font-medium text-slate-700">{b.userId?.name}</td>
                     <td className="py-3 text-slate-600">{b.serviceId?.title}</td>
                     <td className="py-3 text-slate-500">{formatDate(b.bookingDate)}</td>
-                    <td className="py-3 font-medium text-slate-700">{formatCurrency(b.price)}</td>
+                    <td className="py-3 font-semibold text-green-600">{formatCurrency(b.price)}</td>
                     <td className="py-3">
                       <StatusBadge status={b.bookingStatus} />
                     </td>

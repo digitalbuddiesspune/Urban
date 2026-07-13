@@ -6,7 +6,7 @@ export const Spinner = ({ className = 'h-5 w-5' }) => (
 )
 
 export const PageLoader = () => (
-  <div className="flex items-center justify-center py-24 text-violet-600">
+  <div className="flex items-center justify-center py-24 text-black">
     <Spinner className="h-8 w-8" />
   </div>
 )
