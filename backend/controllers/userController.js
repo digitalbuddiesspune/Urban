@@ -5,11 +5,24 @@ import Booking from '../models/Booking.js'
 import Review from '../models/Review.js'
 import Vendor from '../models/Vendor.js'
 import User from '../models/User.js'
+import Settings from '../models/Settings.js'
+import { defaultUserSiteTheme, mergeUserSiteTheme } from '../utils/defaultUserSiteTheme.js'
 
-// @desc Get active categories
+// @desc Get user-site theme & branding (public)
+// @route GET /api/user/site-theme
+export const getSiteTheme = asyncHandler(async (req, res) => {
+  const settings = await Settings.getSingleton()
+  res.json({
+    success: true,
+    siteName: settings.siteName,
+    theme: mergeUserSiteTheme(defaultUserSiteTheme, settings.userSiteTheme),
+  })
+})
+
+// @desc Get categories visible to customers (active, or not explicitly disabled)
 // @route GET /api/user/categories
 export const getCategories = asyncHandler(async (req, res) => {
-  const categories = await Category.find({ isActive: true }).sort('name')
+  const categories = await Category.find({ isActive: { $ne: false } }).sort('name')
   res.json({ success: true, categories })
 })
 

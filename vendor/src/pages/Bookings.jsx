@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { CalendarCheck } from 'lucide-react'
 import api from '../api/axios.js'
@@ -14,23 +15,36 @@ const NEXT_STATUS = {
   in_progress: ['completed'],
 }
 
-const FILTERS = ['all', 'pending', 'accepted', 'on_the_way', 'in_progress', 'completed', 'cancelled']
+const FILTERS = ['all', 'pending', 'accepted', 'on_the_way', 'in_progress', 'completed', 'cancelled', 'rejected']
+const PAYMENT_FILTERS = ['', 'pending', 'paid', 'failed', 'refunded']
 
 const Bookings = () => {
+  const [searchParams, setSearchParams] = useSearchParams()
   const [bookings, setBookings] = useState([])
   const [loading, setLoading] = useState(true)
-  const [filter, setFilter] = useState('all')
+  const [filter, setFilter] = useState(searchParams.get('status') || 'all')
+  const [paymentFilter, setPaymentFilter] = useState(searchParams.get('payment') || '')
 
   const load = () => {
     setLoading(true)
-    const q = filter === 'all' ? '' : `?status=${filter}`
+    const params = new URLSearchParams()
+    if (filter !== 'all') params.set('status', filter)
+    if (paymentFilter) params.set('payment', paymentFilter)
+    const q = params.toString() ? `?${params.toString()}` : ''
     api
       .get(`/vendor/bookings${q}`)
       .then((r) => setBookings(r.data.bookings))
       .finally(() => setLoading(false))
   }
 
-  useEffect(load, [filter])
+  useEffect(load, [filter, paymentFilter])
+
+  useEffect(() => {
+    const params = new URLSearchParams()
+    if (filter !== 'all') params.set('status', filter)
+    if (paymentFilter) params.set('payment', paymentFilter)
+    setSearchParams(params, { replace: true })
+  }, [filter, paymentFilter, setSearchParams])
 
   const updateStatus = async (id, status) => {
     try {
@@ -59,6 +73,21 @@ const Bookings = () => {
             }`}
           >
             {statusLabel(f)}
+          </button>
+        ))}
+      </div>
+
+      <div className="mt-3 flex flex-wrap items-center gap-2">
+        <span className="text-xs font-medium uppercase tracking-wide text-slate-400">Payment</span>
+        {PAYMENT_FILTERS.map((f) => (
+          <button
+            key={f || 'all'}
+            onClick={() => setPaymentFilter(f)}
+            className={`rounded-full px-3 py-1 text-xs font-medium capitalize ${
+              paymentFilter === f ? 'bg-black text-white' : 'bg-white text-slate-600 hover:bg-slate-50'
+            }`}
+          >
+            {f ? statusLabel(f) : 'All'}
           </button>
         ))}
       </div>

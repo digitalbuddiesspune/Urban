@@ -69,7 +69,7 @@ const seed = async () => {
     for (const cat of categories) {
       const result = await Category.findOneAndUpdate(
         { name: cat.name },
-        { ...cat, slug: slugify(cat.name) },
+        { ...cat, slug: slugify(cat.name), isActive: true },
         { upsert: true, new: true, setDefaultsOnInsert: true },
       )
       console.log(`Category synced -> ${result.name}`)

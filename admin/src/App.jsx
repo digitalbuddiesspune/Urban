@@ -11,6 +11,7 @@ import Categories from './pages/Categories.jsx'
 import Services from './pages/Services.jsx'
 import Bookings from './pages/Bookings.jsx'
 import Reviews from './pages/Reviews.jsx'
+import SiteCustomizer from './pages/SiteCustomizer.jsx'
 import Settings from './pages/Settings.jsx'
 
 function App() {
@@ -34,6 +35,7 @@ function App() {
             <Route path="/services" element={<Services />} />
             <Route path="/bookings" element={<Bookings />} />
             <Route path="/reviews" element={<Reviews />} />
+            <Route path="/site-customizer" element={<SiteCustomizer />} />
             <Route path="/settings" element={<Settings />} />
           </Route>
           <Route path="*" element={<Navigate to="/dashboard" replace />} />

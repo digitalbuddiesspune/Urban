@@ -17,6 +17,7 @@ import { PageLoader } from '../components/ui/Loader.jsx'
 import StatCard from '../components/StatCard.jsx'
 import StatusBadge from '../components/ui/StatusBadge.jsx'
 import EmptyState from '../components/ui/EmptyState.jsx'
+import AlertsPanel from '../components/AlertsPanel.jsx'
 import { formatCurrency, formatDate } from '../utils/helpers.js'
 
 const COLORS = ['#d97706', '#16a34a', '#94a3b8']
@@ -45,7 +46,7 @@ const Dashboard = () => {
     )
   }
 
-  const { stats, recentBookings } = data
+  const { stats, recentBookings, alerts } = data
 
   const barData = [
     { name: 'Users', value: stats.totalUsers },
@@ -64,6 +65,10 @@ const Dashboard = () => {
     <div>
       <h1 className="text-2xl font-bold text-slate-900">Dashboard</h1>
       <p className="text-sm text-slate-500">Platform analytics overview</p>
+
+      <div className="mt-6">
+        <AlertsPanel alerts={alerts} />
+      </div>
 
       <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard icon={Users} label="Total Users" value={stats.totalUsers} tint="blue" />

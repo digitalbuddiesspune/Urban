@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { Check, X, Wrench } from 'lucide-react'
 import api from '../api/axios.js'
@@ -10,9 +11,10 @@ import { formatCurrency, statusLabel } from '../utils/helpers.js'
 const FILTERS = ['all', 'pending', 'approved', 'rejected']
 
 const Services = () => {
+  const [searchParams, setSearchParams] = useSearchParams()
   const [services, setServices] = useState([])
   const [loading, setLoading] = useState(true)
-  const [filter, setFilter] = useState('all')
+  const [filter, setFilter] = useState(searchParams.get('status') || 'all')
 
   const load = () => {
     setLoading(true)
@@ -24,6 +26,11 @@ const Services = () => {
   }
 
   useEffect(load, [filter])
+
+  useEffect(() => {
+    if (filter === 'all') setSearchParams({}, { replace: true })
+    else setSearchParams({ status: filter }, { replace: true })
+  }, [filter, setSearchParams])
 
   const act = async (id, action) => {
     try {

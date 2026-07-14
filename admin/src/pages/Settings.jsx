@@ -62,6 +62,16 @@ const Settings = () => {
       </h1>
       <p className="text-sm text-slate-500">Manage platform configuration and your account</p>
 
+      <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-4">
+        <p className="text-sm text-slate-700">
+          Customize the customer website visually — colors, images, navbar & layout — in{' '}
+          <a href="/site-customizer" className="font-semibold text-black underline">
+            Site Customizer
+          </a>
+          .
+        </p>
+      </div>
+
       <form onSubmit={savePlatform} className="card mt-6 space-y-4 p-6">
         <h2 className="font-semibold text-slate-800">Platform settings</h2>
         <div>

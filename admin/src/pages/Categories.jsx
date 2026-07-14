@@ -115,8 +115,8 @@ const Categories = () => {
               <div className="p-4">
                 <div className="flex items-center justify-between">
                   <h3 className="font-semibold text-slate-800">{c.name}</h3>
-                  <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${c.isActive ? 'bg-green-100 text-green-700' : 'bg-slate-200 text-slate-500'}`}>
-                    {c.isActive ? 'Active' : 'Inactive'}
+                  <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${c.isActive !== false ? 'bg-green-100 text-green-700' : 'bg-slate-200 text-slate-500'}`}>
+                    {c.isActive !== false ? 'Active' : 'Inactive'}
                   </span>
                 </div>
                 <p className="mt-1 line-clamp-2 text-sm text-slate-500">{c.description}</p>

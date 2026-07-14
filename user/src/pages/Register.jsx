@@ -3,10 +3,12 @@ import { Link, useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { Sparkles } from 'lucide-react'
 import { useAuth } from '../context/AuthContext.jsx'
+import { useTheme } from '../context/ThemeContext.jsx'
 import Spinner from '../components/ui/Loader.jsx'
 
 const Register = () => {
   const { register } = useAuth()
+  const { theme, siteName } = useTheme()
   const navigate = useNavigate()
   const [form, setForm] = useState({ name: '', email: '', phone: '', password: '' })
   const [loading, setLoading] = useState(false)
@@ -26,13 +28,17 @@ const Register = () => {
   }
 
   return (
-    <div className="mx-auto flex max-w-md flex-col px-4 py-10 sm:py-16">
+    <div
+      className="min-h-screen bg-cover bg-center"
+      style={theme.images.registerBackground ? { backgroundImage: `url(${theme.images.registerBackground})` } : undefined}
+    >
+      <div className={`mx-auto flex max-w-md flex-col px-4 py-10 sm:py-16 ${theme.images.registerBackground ? 'rounded-2xl bg-white/95 backdrop-blur-sm' : ''}`}>
       <div className="mb-6 text-center">
         <span className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl brand-gradient text-white">
           <Sparkles className="h-6 w-6" />
         </span>
         <h1 className="text-2xl font-bold text-slate-900">Create your account</h1>
-        <p className="text-sm text-slate-500">Start booking trusted home services</p>
+        <p className="text-sm text-slate-500">Join {siteName} today</p>
       </div>
       <form onSubmit={submit} className="card space-y-4 p-6">
         <div>
@@ -61,6 +67,7 @@ const Register = () => {
           Login
         </Link>
       </p>
+      </div>
     </div>
   )
 }

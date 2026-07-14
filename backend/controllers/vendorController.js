@@ -3,6 +3,7 @@ import Service from '../models/Service.js'
 import Booking from '../models/Booking.js'
 import Review from '../models/Review.js'
 import Vendor from '../models/Vendor.js'
+import { buildVendorAlerts } from '../utils/dashboardAlerts.js'
 
 // @desc Vendor dashboard
 // @route GET /api/vendor/dashboard
@@ -28,6 +29,8 @@ export const getDashboard = asyncHandler(async (req, res) => {
     .sort('-createdAt')
     .limit(5)
 
+  const alerts = await buildVendorAlerts(vendorId)
+
   res.json({
     success: true,
     stats: {
@@ -40,6 +43,7 @@ export const getDashboard = asyncHandler(async (req, res) => {
       rating: req.user.rating,
     },
     recentBookings,
+    alerts,
   })
 })
 
@@ -126,9 +130,10 @@ export const deleteService = asyncHandler(async (req, res) => {
 // @desc Get vendor bookings
 // @route GET /api/vendor/bookings
 export const getMyBookings = asyncHandler(async (req, res) => {
-  const { status } = req.query
+  const { status, payment } = req.query
   const query = { vendorId: req.user._id }
   if (status) query.bookingStatus = status
+  if (payment) query.paymentStatus = payment
   const bookings = await Booking.find(query)
     .populate('userId', 'name phone email')
     .populate('serviceId', 'title')

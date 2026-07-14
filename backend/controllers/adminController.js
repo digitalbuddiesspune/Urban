@@ -5,6 +5,8 @@ import Service from '../models/Service.js'
 import Booking from '../models/Booking.js'
 import Review from '../models/Review.js'
 import Settings from '../models/Settings.js'
+import { buildAdminAlerts } from '../utils/dashboardAlerts.js'
+import { defaultUserSiteTheme, mergeUserSiteTheme } from '../utils/defaultUserSiteTheme.js'
 
 // ---------- Vendors ----------
 
@@ -185,8 +187,10 @@ export const rejectService = asyncHandler(async (req, res) => {
 // @desc Get all bookings
 // @route GET /api/admin/bookings
 export const getAllBookings = asyncHandler(async (req, res) => {
-  const { status } = req.query
-  const query = status ? { bookingStatus: status } : {}
+  const { status, payment } = req.query
+  const query = {}
+  if (status) query.bookingStatus = status
+  if (payment) query.paymentStatus = payment
   const bookings = await Booking.find(query)
     .populate('userId', 'name email phone')
     .populate('vendorId', 'name businessName')
@@ -195,7 +199,7 @@ export const getAllBookings = asyncHandler(async (req, res) => {
   res.json({ success: true, count: bookings.length, bookings })
 })
 
-// @desc Update booking status / payment status (admin)
+// @desc Update payment status (admin) — booking status is managed by the vendor only
 // @route PUT /api/admin/bookings/:id
 export const updateBookingByAdmin = asyncHandler(async (req, res) => {
   const booking = await Booking.findById(req.params.id)
@@ -203,7 +207,10 @@ export const updateBookingByAdmin = asyncHandler(async (req, res) => {
     res.status(404)
     throw new Error('Booking not found')
   }
-  if (req.body.bookingStatus) booking.bookingStatus = req.body.bookingStatus
+  if (req.body.bookingStatus) {
+    res.status(403)
+    throw new Error('Booking status can only be changed by the vendor who owns the booking')
+  }
   if (req.body.paymentStatus) booking.paymentStatus = req.body.paymentStatus
   await booking.save()
   res.json({ success: true, booking })
@@ -255,6 +262,39 @@ export const updateSettings = asyncHandler(async (req, res) => {
   res.json({ success: true, settings })
 })
 
+// @desc Get user-site theme for customizer
+// @route GET /api/admin/site-theme
+export const getUserSiteTheme = asyncHandler(async (req, res) => {
+  const settings = await Settings.getSingleton()
+  res.json({
+    success: true,
+    siteName: settings.siteName,
+    theme: mergeUserSiteTheme(defaultUserSiteTheme, settings.userSiteTheme),
+  })
+})
+
+// @desc Update user-site theme (no-code customizer)
+// @route PUT /api/admin/site-theme
+export const updateUserSiteTheme = asyncHandler(async (req, res) => {
+  const settings = await Settings.getSingleton()
+  const { siteName, theme, reset } = req.body
+  if (siteName !== undefined) settings.siteName = siteName
+  if (reset) {
+    settings.userSiteTheme = { ...defaultUserSiteTheme }
+  } else if (theme) {
+    settings.userSiteTheme = mergeUserSiteTheme(
+      mergeUserSiteTheme(defaultUserSiteTheme, settings.userSiteTheme),
+      theme,
+    )
+  }
+  await settings.save()
+  res.json({
+    success: true,
+    siteName: settings.siteName,
+    theme: mergeUserSiteTheme(defaultUserSiteTheme, settings.userSiteTheme),
+  })
+})
+
 // ---------- Dashboard ----------
 
 // @desc Dashboard analytics
@@ -289,6 +329,8 @@ export const getDashboard = asyncHandler(async (req, res) => {
     .sort('-createdAt')
     .limit(5)
 
+  const alerts = await buildAdminAlerts()
+
   res.json({
     success: true,
     stats: {
@@ -301,5 +343,6 @@ export const getDashboard = asyncHandler(async (req, res) => {
       revenue,
     },
     recentBookings,
+    alerts,
   })
 })

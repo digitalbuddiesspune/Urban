@@ -3,6 +3,7 @@ import {
   getCategories,
   getServices,
   getServiceById,
+  getSiteTheme,
   createBooking,
   getMyBookings,
   cancelBooking,
@@ -17,6 +18,7 @@ const router = express.Router()
 
 // Public browsing
 router.get('/categories', getCategories)
+router.get('/site-theme', getSiteTheme)
 router.get('/services', getServices)
 router.get('/services/:id', getServiceById)
 

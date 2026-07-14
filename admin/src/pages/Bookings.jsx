@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { CalendarCheck } from 'lucide-react'
 import api from '../api/axios.js'
@@ -7,33 +8,37 @@ import EmptyState from '../components/ui/EmptyState.jsx'
 import StatusBadge from '../components/ui/StatusBadge.jsx'
 import { formatCurrency, formatDate, statusLabel, STATUS_STYLES } from '../utils/helpers.js'
 
-const BOOKING_STATUSES = [
-  'pending',
-  'accepted',
-  'rejected',
-  'on_the_way',
-  'in_progress',
-  'completed',
-  'cancelled',
-]
 const PAYMENT_STATUSES = ['pending', 'paid', 'failed', 'refunded']
-const FILTERS = ['all', 'pending', 'accepted', 'in_progress', 'completed', 'cancelled']
+const FILTERS = ['all', 'pending', 'accepted', 'on_the_way', 'in_progress', 'completed', 'cancelled', 'rejected']
+const PAYMENT_FILTERS = ['', 'pending', 'paid', 'failed', 'refunded']
 
 const Bookings = () => {
+  const [searchParams, setSearchParams] = useSearchParams()
   const [bookings, setBookings] = useState([])
   const [loading, setLoading] = useState(true)
-  const [filter, setFilter] = useState('all')
+  const [filter, setFilter] = useState(searchParams.get('status') || 'all')
+  const [paymentFilter, setPaymentFilter] = useState(searchParams.get('payment') || '')
 
   const load = () => {
     setLoading(true)
-    const q = filter === 'all' ? '' : `?status=${filter}`
+    const params = new URLSearchParams()
+    if (filter !== 'all') params.set('status', filter)
+    if (paymentFilter) params.set('payment', paymentFilter)
+    const q = params.toString() ? `?${params.toString()}` : ''
     api
       .get(`/admin/bookings${q}`)
       .then((r) => setBookings(r.data.bookings))
       .finally(() => setLoading(false))
   }
 
-  useEffect(load, [filter])
+  useEffect(load, [filter, paymentFilter])
+
+  useEffect(() => {
+    const params = new URLSearchParams()
+    if (filter !== 'all') params.set('status', filter)
+    if (paymentFilter) params.set('payment', paymentFilter)
+    setSearchParams(params, { replace: true })
+  }, [filter, paymentFilter, setSearchParams])
 
   const update = async (id, field, value) => {
     try {
@@ -48,7 +53,7 @@ const Bookings = () => {
   return (
     <div>
       <h1 className="text-2xl font-bold text-slate-900">Booking management</h1>
-      <p className="text-sm text-slate-500">View all bookings and manage status & payments</p>
+      <p className="text-sm text-slate-500">View all bookings and manage payments. Booking status is updated by vendors.</p>
 
       <div className="mt-5 flex flex-wrap gap-2">
         {FILTERS.map((f) => (
@@ -60,6 +65,21 @@ const Bookings = () => {
             }`}
           >
             {statusLabel(f)}
+          </button>
+        ))}
+      </div>
+
+      <div className="mt-3 flex flex-wrap items-center gap-2">
+        <span className="text-xs font-medium uppercase tracking-wide text-slate-400">Payment</span>
+        {PAYMENT_FILTERS.map((f) => (
+          <button
+            key={f || 'all'}
+            onClick={() => setPaymentFilter(f)}
+            className={`rounded-full px-3 py-1 text-xs font-medium capitalize ${
+              paymentFilter === f ? 'bg-black text-white' : 'bg-white text-slate-600 hover:bg-slate-50'
+            }`}
+          >
+            {f ? statusLabel(f) : 'All'}
           </button>
         ))}
       </div>
@@ -91,17 +111,7 @@ const Bookings = () => {
                   <td className="p-4 text-slate-500">{formatDate(b.bookingDate)}</td>
                   <td className="p-4 font-semibold text-green-600">{formatCurrency(b.price)}</td>
                   <td className="p-4">
-                    <select
-                      value={b.bookingStatus}
-                      onChange={(e) => update(b._id, 'bookingStatus', e.target.value)}
-                      className={`rounded-lg border-0 px-2.5 py-1 text-xs font-semibold ${STATUS_STYLES[b.bookingStatus] || 'bg-slate-100 text-slate-700'}`}
-                    >
-                      {BOOKING_STATUSES.map((s) => (
-                        <option key={s} value={s}>
-                          {statusLabel(s)}
-                        </option>
-                      ))}
-                    </select>
+                    <StatusBadge status={b.bookingStatus} />
                   </td>
                   <td className="p-4">
                     <select

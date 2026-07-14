@@ -8,6 +8,7 @@ import {
   Wrench,
   CalendarCheck,
   Star,
+  Paintbrush,
   Settings,
   LogOut,
   Sparkles,
@@ -24,6 +25,7 @@ const navItems = [
   { to: '/services', label: 'Services', icon: Wrench },
   { to: '/bookings', label: 'Bookings', icon: CalendarCheck },
   { to: '/reviews', label: 'Reviews', icon: Star },
+  { to: '/site-customizer', label: 'Site Customizer', icon: Paintbrush },
   { to: '/settings', label: 'Settings', icon: Settings },
 ]
 

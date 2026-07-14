@@ -17,6 +17,7 @@ export const createCategory = asyncHandler(async (req, res) => {
     slug: slugify(name),
     image,
     description,
+    isActive: req.body.isActive !== undefined ? req.body.isActive : true,
   })
   res.status(201).json({ success: true, category })
 })

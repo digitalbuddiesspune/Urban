@@ -3,10 +3,12 @@ import { Link, useNavigate, useLocation } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { Sparkles } from 'lucide-react'
 import { useAuth } from '../context/AuthContext.jsx'
+import { useTheme } from '../context/ThemeContext.jsx'
 import Spinner from '../components/ui/Loader.jsx'
 
 const Login = () => {
   const { login } = useAuth()
+  const { theme, siteName } = useTheme()
   const navigate = useNavigate()
   const location = useLocation()
   const [form, setForm] = useState({ email: '', password: '' })
@@ -27,13 +29,17 @@ const Login = () => {
   }
 
   return (
-    <div className="mx-auto flex max-w-md flex-col px-4 py-10 sm:py-16">
+    <div
+      className="min-h-screen bg-cover bg-center"
+      style={theme.images.loginBackground ? { backgroundImage: `url(${theme.images.loginBackground})` } : undefined}
+    >
+      <div className={`mx-auto flex max-w-md flex-col px-4 py-10 sm:py-16 ${theme.images.loginBackground ? 'rounded-2xl bg-white/95 backdrop-blur-sm' : ''}`}>
       <div className="mb-6 text-center">
         <span className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl brand-gradient text-white">
           <Sparkles className="h-6 w-6" />
         </span>
         <h1 className="text-2xl font-bold text-slate-900">Welcome back</h1>
-        <p className="text-sm text-slate-500">Login to book and manage your services</p>
+        <p className="text-sm text-slate-500">Login to {siteName}</p>
       </div>
       <form onSubmit={submit} className="card space-y-4 p-6">
         <div>
@@ -63,11 +69,12 @@ const Login = () => {
         </button>
       </form>
       <p className="mt-4 text-center text-sm text-slate-500">
-        New to UrbanEase?{' '}
+        New to {siteName}?{' '}
         <Link to="/register" className="font-semibold text-violet-700">
           Create an account
         </Link>
       </p>
+      </div>
     </div>
   )
 }

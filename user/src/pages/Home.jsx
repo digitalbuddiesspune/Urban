@@ -5,18 +5,24 @@ import Hero from '../components/home/Hero.jsx'
 import CategoryCarousel from '../components/home/CategoryCarousel.jsx'
 import PopularServices from '../components/home/PopularServices.jsx'
 import Testimonials from '../components/home/Testimonials.jsx'
+import { useTheme } from '../context/ThemeContext.jsx'
+
+const SECTIONS = {
+  hero: Hero,
+  categories: CategoryCarousel,
+  popular: PopularServices,
+  testimonials: Testimonials,
+}
 
 const Home = () => {
+  const { theme } = useTheme()
   const [categories, setCategories] = useState([])
-  const [services, setServices] = useState([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    Promise.all([api.get('/user/categories'), api.get('/user/services?limit=8')])
-      .then(([c, s]) => {
-        setCategories(c.data.categories)
-        setServices(s.data.services)
-      })
+    api
+      .get('/user/categories')
+      .then((r) => setCategories(r.data.categories))
       .finally(() => setLoading(false))
   }, [])
 
@@ -24,10 +30,13 @@ const Home = () => {
 
   return (
     <div>
-      <Hero />
-      <CategoryCarousel categories={categories} />
-      <PopularServices services={services} />
-      <Testimonials />
+      {theme.homeSections.map((key) => {
+        const Section = SECTIONS[key]
+        if (!Section) return null
+        if (key === 'hero') return <Section key={key} />
+        if (key === 'categories' || key === 'popular') return <Section key={key} categories={categories} />
+        return <Section key={key} />
+      })}
     </div>
   )
 }

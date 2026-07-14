@@ -18,6 +18,8 @@ import {
   deleteReview,
   getSettings,
   updateSettings,
+  getUserSiteTheme,
+  updateUserSiteTheme,
   getDashboard,
 } from '../controllers/adminController.js'
 import { protect, authorize } from '../middleware/authMiddleware.js'
@@ -48,5 +50,6 @@ router.get('/reviews', getAllReviews)
 router.delete('/reviews/:id', deleteReview)
 
 router.route('/settings').get(getSettings).put(updateSettings)
+router.route('/site-theme').get(getUserSiteTheme).put(updateUserSiteTheme)
 
 export default router
