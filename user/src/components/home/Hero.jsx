@@ -7,7 +7,7 @@ const TILES = [
     key: 'instant',
     label: 'InstaHelp',
     categoryNames: ['Instant Help'],
-    emoji: '👩‍🔧',
+    image: '/hero/instahelp.webp',
     href: '/services',
   },
   {
@@ -97,7 +97,7 @@ const resolveHref = (tile, categories = []) => {
 
 const ServiceTile = ({ tile, to }) => (
   <Link to={to} className="group flex flex-col items-center text-center">
-    <div className="relative flex h-[72px] w-full items-center justify-center rounded-xl bg-slate-100 transition group-hover:bg-slate-200/80 sm:h-[80px]">
+    <div className="relative flex h-[72px] w-full items-center justify-center overflow-hidden rounded-xl bg-slate-100 transition group-hover:bg-slate-200/80 sm:h-[80px]">
       {tile.badge && (
         <span className="absolute -top-2 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap rounded bg-emerald-500 px-1.5 py-0.5 text-[10px] font-semibold text-white shadow-sm">
           {tile.badge}
@@ -105,6 +105,13 @@ const ServiceTile = ({ tile, to }) => (
       )}
       {tile.key === 'all' ? (
         <Grid3X3 className="h-8 w-8 text-slate-500" strokeWidth={1.75} />
+      ) : tile.image ? (
+        <img
+          src={tile.image}
+          alt=""
+          className="h-full w-full object-cover object-top"
+          loading="lazy"
+        />
       ) : (
         <span className="text-3xl leading-none sm:text-[2rem]" role="img" aria-hidden>
           {tile.emoji}
