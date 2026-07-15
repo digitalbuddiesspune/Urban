@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Calendar, Clock, X } from 'lucide-react'
-import { formatCurrency, formatDate } from '../utils/helpers.js'
+import { formatCurrency, formatDate, formatTime } from '../utils/helpers.js'
 
 const TIME_SLOTS = ['09:00', '10:00', '11:00', '12:00', '14:00', '15:00', '16:00', '17:00', '18:00']
 const FALLBACK = 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=600'
@@ -113,7 +113,7 @@ const ScheduleServiceModal = ({
           {hasExistingSchedule && (
             <div className="mt-4 rounded-xl bg-slate-50 px-3.5 py-2.5 text-sm text-slate-700">
               <span className="font-medium text-slate-900">Scheduled: </span>
-              {[initialDate ? formatDate(normalizeDateForInput(initialDate) || initialDate) : null, normalizeTimeForInput(initialTime)]
+              {[initialDate ? formatDate(normalizeDateForInput(initialDate) || initialDate) : null, formatTime(normalizeTimeForInput(initialTime))]
                 .filter(Boolean)
                 .join(' · ')}
             </div>
@@ -162,7 +162,7 @@ const ScheduleServiceModal = ({
                     }`}
                     aria-pressed={active}
                   >
-                    {t}
+                    {formatTime(t)}
                   </button>
                 )
               })}

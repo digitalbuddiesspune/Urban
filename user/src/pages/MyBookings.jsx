@@ -9,7 +9,7 @@ import StatusBadge from '../components/ui/StatusBadge.jsx'
 import StarRating from '../components/ui/StarRating.jsx'
 import ConfirmModal from '../components/ui/ConfirmModal.jsx'
 import Spinner from '../components/ui/Loader.jsx'
-import { formatCurrency, formatDate } from '../utils/helpers.js'
+import { formatCurrency, formatDate, formatTime } from '../utils/helpers.js'
 
 const ReviewModal = ({ booking, onClose, onDone }) => {
   const [rating, setRating] = useState(5)
@@ -116,7 +116,7 @@ const MyBookings = () => {
                     {b.vendorId?.businessName || b.vendorId?.name}
                   </p>
                   <p className="mt-1 text-sm text-slate-500">
-                    {formatDate(b.bookingDate)} at {b.bookingTime}
+                    {formatDate(b.bookingDate)} at {formatTime(b.bookingTime)}
                   </p>
                 </div>
                 <div className="flex items-center justify-between gap-3 sm:flex-col sm:items-end sm:text-right">

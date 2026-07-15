@@ -11,6 +11,11 @@ import {
   getAddresses,
   addAddress,
   deleteAddress,
+  getCart,
+  addCartItem,
+  updateCartItem,
+  removeCartItem,
+  clearCart,
 } from '../controllers/userController.js'
 import { protect, authorize } from '../middleware/authMiddleware.js'
 
@@ -29,5 +34,8 @@ router.put('/bookings/:id/cancel', cancelBooking)
 router.post('/reviews', createReview)
 router.route('/addresses').get(getAddresses).post(addAddress)
 router.delete('/addresses/:addressId', deleteAddress)
+router.route('/cart').get(getCart).delete(clearCart)
+router.post('/cart/items', addCartItem)
+router.route('/cart/items/:serviceId').put(updateCartItem).delete(removeCartItem)
 
 export default router

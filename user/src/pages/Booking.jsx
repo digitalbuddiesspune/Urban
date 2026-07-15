@@ -5,7 +5,7 @@ import { MapPin, Plus, ChevronLeft } from 'lucide-react'
 import api from '../api/axios.js'
 import { PageLoader } from '../components/ui/Loader.jsx'
 import Spinner from '../components/ui/Loader.jsx'
-import { formatCurrency, formatDate } from '../utils/helpers.js'
+import { formatCurrency, formatDate, formatTime } from '../utils/helpers.js'
 import { useCart } from '../context/CartContext.jsx'
 import ScheduleServiceModal from '../components/ScheduleServiceModal.jsx'
 
@@ -118,9 +118,9 @@ const Booking = () => {
       }
 
       if (bookAll && items.length > 0) {
-        clearCart()
+        await clearCart()
       } else if (isInCart(id)) {
-        removeItem(id)
+        await removeItem(id)
       }
 
       toast.success(
@@ -186,7 +186,7 @@ const Booking = () => {
               <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
                 {(item.bookingDate || item.bookingTime) ? (
                   <span className="font-medium text-slate-600">
-                    {[item.bookingDate ? formatDate(item.bookingDate) : null, item.bookingTime]
+                    {[item.bookingDate ? formatDate(item.bookingDate) : null, formatTime(item.bookingTime)]
                       .filter(Boolean)
                       .join(' · ')}
                   </span>
@@ -359,10 +359,14 @@ const Booking = () => {
         }
         confirmLabel="Update"
         onClose={() => setEditingItem(null)}
-        onConfirm={({ bookingDate, bookingTime }) => {
-          updateSchedule(editingItem.serviceId, { bookingDate, bookingTime })
-          toast.success('Date & time updated')
-          setEditingItem(null)
+        onConfirm={async ({ bookingDate, bookingTime }) => {
+          try {
+            await updateSchedule(editingItem.serviceId, { bookingDate, bookingTime })
+            toast.success('Date & time updated')
+            setEditingItem(null)
+          } catch (err) {
+            toast.error(err.message || 'Could not update schedule')
+          }
         }}
       />
     </div>

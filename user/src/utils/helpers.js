@@ -6,6 +6,20 @@ export const formatCurrency = (amount = 0) =>
 export const formatDate = (date) =>
   date ? new Date(date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : ''
 
+/** Display "09:00" / "14:00" as "9:00 AM" / "2:00 PM" */
+export const formatTime = (time) => {
+  if (!time) return ''
+  const trimmed = String(time).trim()
+  const match = trimmed.match(/^(\d{1,2}):(\d{2})/)
+  if (!match) return trimmed
+  let hour = Number(match[1])
+  const minute = match[2]
+  if (!Number.isFinite(hour) || hour < 0 || hour > 23) return trimmed
+  const period = hour >= 12 ? 'PM' : 'AM'
+  hour = hour % 12 || 12
+  return `${hour}:${minute} ${period}`
+}
+
 // Monochrome status styles: distinguished by light/dark shade and border.
 export const STATUS_STYLES = {
   pending: 'bg-slate-100 text-slate-700 ring-1 ring-slate-200',

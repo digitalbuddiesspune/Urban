@@ -20,7 +20,7 @@ import api from '../api/axios.js'
 import { useAuth } from '../context/AuthContext.jsx'
 import Spinner, { PageLoader } from '../components/ui/Loader.jsx'
 import ConfirmModal from '../components/ui/ConfirmModal.jsx'
-import { formatCurrency, formatDate } from '../utils/helpers.js'
+import { formatCurrency, formatDate, formatTime } from '../utils/helpers.js'
 
 const emptyAddr = { label: 'Home', line1: '', line2: '', city: '', state: '', pincode: '' }
 
@@ -248,7 +248,7 @@ const Profile = () => {
                     <div>
                       <p className="text-sm font-medium text-slate-800">{b.serviceId?.title || 'Service'}</p>
                       <p className="text-xs text-slate-400">
-                        {formatDate(b.bookingDate)} at {b.bookingTime}
+                        {formatDate(b.bookingDate)} at {formatTime(b.bookingTime)}
                       </p>
                     </div>
                     <span className="text-sm font-semibold text-slate-700">{formatCurrency(b.price)}</span>

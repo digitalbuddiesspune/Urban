@@ -122,13 +122,16 @@ const ServiceRail = ({ services, showInstant = true }) => {
     setScheduleService(service)
   }
 
-  const handleConfirmSchedule = ({ bookingDate, bookingTime }) => {
+  const handleConfirmSchedule = async ({ bookingDate, bookingTime }) => {
     if (!user) {
       requireLogin()
       return
     }
-    const result = addItem(scheduleService, { bookingDate, bookingTime })
-    if (!result.ok) return
+    const result = await addItem(scheduleService, { bookingDate, bookingTime })
+    if (!result.ok) {
+      toast.error(result.error || 'Could not add to cart')
+      return
+    }
     toast.success(result.alreadyInCart ? 'Schedule updated in cart' : 'Added to cart')
     setScheduleService(null)
   }

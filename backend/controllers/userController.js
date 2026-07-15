@@ -2,6 +2,7 @@ import asyncHandler from '../utils/asyncHandler.js'
 import Category from '../models/Category.js'
 import Service from '../models/Service.js'
 import Booking from '../models/Booking.js'
+import Cart from '../models/Cart.js'
 import Review from '../models/Review.js'
 import Vendor from '../models/Vendor.js'
 import User from '../models/User.js'
@@ -273,4 +274,143 @@ export const deleteAddress = asyncHandler(async (req, res) => {
   user.addresses = user.addresses.filter((a) => a._id.toString() !== req.params.addressId)
   await user.save()
   res.json({ success: true, addresses: user.addresses })
+})
+
+// ---------- Cart ----------
+
+const getOrCreateCart = async (userId) => {
+  let cart = await Cart.findOne({ userId })
+  if (!cart) {
+    cart = await Cart.create({ userId, items: [] })
+  }
+  return cart
+}
+
+const formatCartItems = (cart) =>
+  (cart?.items || [])
+    .map((item) => {
+      const service = item.serviceId
+      if (!service || typeof service !== 'object' || !service._id) return null
+      if (service.status && service.status !== 'approved') return null
+      if (service.isActive === false) return null
+      const price = service.discountPrice > 0 ? service.discountPrice : service.price
+      return {
+        serviceId: service._id,
+        title: service.title,
+        image: service.images?.[0] || '',
+        price,
+        originalPrice: service.price,
+        discountPrice: service.discountPrice || 0,
+        qty: item.qty || 1,
+        categoryName: service.categoryId?.name || '',
+        bookingDate: item.bookingDate || '',
+        bookingTime: item.bookingTime || '',
+      }
+    })
+    .filter(Boolean)
+
+const populateCart = (cartId) =>
+  Cart.findById(cartId).populate({
+    path: 'items.serviceId',
+    select: 'title images price discountPrice status isActive categoryId',
+    populate: { path: 'categoryId', select: 'name' },
+  })
+
+// @desc Get current user's cart (prices from live services)
+// @route GET /api/user/cart
+export const getCart = asyncHandler(async (req, res) => {
+  const cart = await getOrCreateCart(req.user._id)
+  const populated = await populateCart(cart._id)
+  res.json({ success: true, items: formatCartItems(populated) })
+})
+
+// @desc Add / update service in cart
+// @route POST /api/user/cart/items
+export const addCartItem = asyncHandler(async (req, res) => {
+  const { serviceId, bookingDate, bookingTime, qty } = req.body
+  if (!serviceId) {
+    res.status(400)
+    throw new Error('Service is required')
+  }
+  if (!bookingDate || !bookingTime) {
+    res.status(400)
+    throw new Error('Booking date and time are required')
+  }
+
+  const service = await Service.findById(serviceId)
+  if (!service || service.status !== 'approved' || !service.isActive) {
+    res.status(404)
+    throw new Error('Service not available')
+  }
+
+  const cart = await getOrCreateCart(req.user._id)
+  const existing = cart.items.find((i) => String(i.serviceId) === String(serviceId))
+  const alreadyInCart = Boolean(existing)
+
+  if (existing) {
+    existing.bookingDate = bookingDate
+    existing.bookingTime = bookingTime
+    if (qty != null) existing.qty = Math.max(1, Number(qty) || 1)
+  } else {
+    cart.items.push({
+      serviceId,
+      bookingDate,
+      bookingTime,
+      qty: Math.max(1, Number(qty) || 1),
+    })
+  }
+
+  await cart.save()
+  const populated = await populateCart(cart._id)
+  res.status(alreadyInCart ? 200 : 201).json({
+    success: true,
+    alreadyInCart,
+    items: formatCartItems(populated),
+  })
+})
+
+// @desc Update cart item schedule / qty
+// @route PUT /api/user/cart/items/:serviceId
+export const updateCartItem = asyncHandler(async (req, res) => {
+  const { bookingDate, bookingTime, qty } = req.body
+  const cart = await getOrCreateCart(req.user._id)
+  const item = cart.items.find((i) => String(i.serviceId) === String(req.params.serviceId))
+  if (!item) {
+    res.status(404)
+    throw new Error('Item not found in cart')
+  }
+
+  if (bookingDate != null) item.bookingDate = bookingDate
+  if (bookingTime != null) item.bookingTime = bookingTime
+  if (qty != null) {
+    const next = Number(qty)
+    if (!Number.isFinite(next) || next < 1) {
+      cart.items = cart.items.filter((i) => String(i.serviceId) !== String(req.params.serviceId))
+    } else {
+      item.qty = next
+    }
+  }
+
+  await cart.save()
+  const populated = await populateCart(cart._id)
+  res.json({ success: true, items: formatCartItems(populated) })
+})
+
+// @desc Remove one item from cart
+// @route DELETE /api/user/cart/items/:serviceId
+export const removeCartItem = asyncHandler(async (req, res) => {
+  const cart = await getOrCreateCart(req.user._id)
+  cart.items = cart.items.filter((i) => String(i.serviceId) !== String(req.params.serviceId))
+  await cart.save()
+  const populated = await populateCart(cart._id)
+  res.json({ success: true, items: formatCartItems(populated) })
+})
+
+// @desc Clear cart
+// @route DELETE /api/user/cart
+export const clearCart = asyncHandler(async (req, res) => {
+  const cart = await getOrCreateCart(req.user._id)
+  cart.items = []
+  await cart.save()
+  res.json({ success: true, items: [] })
 })
