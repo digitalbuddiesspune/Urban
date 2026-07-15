@@ -137,7 +137,7 @@ const ServiceDetails = () => {
         </div>
       </div>
 
-      <div className="safe-bottom fixed bottom-0 left-0 right-0 z-30 border-t border-slate-200 bg-white/95 p-4 backdrop-blur lg:hidden">
+      <div className="safe-bottom fixed bottom-14 left-0 right-0 z-30 border-t border-slate-200 bg-white/95 p-4 backdrop-blur lg:bottom-0 lg:hidden">
         <div className="mx-auto flex max-w-5xl items-center gap-4">
           <div className="min-w-0 shrink-0">
             <p className="text-xs text-slate-500">From</p>
