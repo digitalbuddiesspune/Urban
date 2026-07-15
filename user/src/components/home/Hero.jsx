@@ -126,7 +126,7 @@ const Hero = ({ categories = [] }) => {
       <div className="mx-auto grid max-w-6xl items-start gap-8 px-4 pb-6 sm:px-6 lg:grid-cols-2 lg:gap-10 lg:pb-10 lg:pt-2">
         {/* Left: headline + service picker */}
         <div className="min-w-0">
-          <h1 className="whitespace-nowrap text-[1.35rem] font-bold leading-tight tracking-tight text-slate-900 sm:text-3xl lg:text-[2.25rem]">
+          <h1 className="whitespace-nowrap text-center text-[1.35rem] font-bold leading-tight tracking-tight text-slate-900 sm:text-left sm:text-3xl lg:text-[2.25rem]">
             {title}
           </h1>
 
@@ -178,15 +178,6 @@ const Hero = ({ categories = [] }) => {
               <img src={COLLAGE.ac.src} alt={COLLAGE.ac.alt} className="h-full w-full object-cover object-center" loading="lazy" />
             </div>
           </div>
-        </div>
-
-        {/* Mobile collage — horizontal strip */}
-        <div className="flex gap-2 overflow-x-auto pb-1 lg:hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          {Object.values(COLLAGE).map((img) => (
-            <div key={img.alt} className="h-40 w-36 shrink-0 overflow-hidden rounded-xl bg-slate-100 sm:h-48 sm:w-44">
-              <img src={img.src} alt={img.alt} className="h-full w-full object-cover" loading="lazy" />
-            </div>
-          ))}
         </div>
       </div>
     </section>
