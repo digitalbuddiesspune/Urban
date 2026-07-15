@@ -3,7 +3,7 @@ import { GripVertical } from 'lucide-react'
 const SECTION_META = {
   hero: { label: 'Hero banner', h: 'h-28' },
   categories: { label: 'Browse by category', h: 'h-20' },
-  popular: { label: 'Our services', h: 'h-24' },
+  popular: { label: 'Most booked services', h: 'h-24' },
   testimonials: { label: 'Testimonials', h: 'h-16' },
 }
 

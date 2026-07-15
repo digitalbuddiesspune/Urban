@@ -75,13 +75,13 @@ export const defaultUserSiteTheme = {
       trust: defaultBlock({ x: 50, y: 94, fontSize: 10, width: 90 }),
     },
   },
-  homeSections: ['hero', 'categories', 'popular', 'testimonials'],
+  homeSections: ['hero', 'popular', 'categories', 'testimonials'],
 }
 
 export const HOME_SECTION_LABELS = {
   hero: 'Hero banner',
   categories: 'Browse by category',
-  popular: 'Our services',
+  popular: 'Most booked services',
   testimonials: 'Testimonials',
 }
 

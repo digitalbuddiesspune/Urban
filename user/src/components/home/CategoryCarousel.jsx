@@ -14,7 +14,7 @@ const CategoryCarousel = ({ categories }) => {
   if (!categories?.length) return null
 
   return (
-    <section id="categories" className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-14">
+    <section id="categories" className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
       <div className="flex items-center justify-between gap-3">
         <div className="min-w-0">
           <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">What we offer</p>

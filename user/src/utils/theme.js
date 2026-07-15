@@ -59,7 +59,7 @@ export const defaultUserSiteTheme = {
       trust: defaultBlock({ x: 50, y: 94, fontSize: 10, width: 90 }),
     },
   },
-  homeSections: ['hero', 'categories', 'popular', 'testimonials'],
+  homeSections: ['hero', 'popular', 'categories', 'testimonials'],
 }
 
 const CARD_SHADOWS = {
