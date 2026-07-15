@@ -45,7 +45,7 @@ const Home = () => {
       {sectionOrder.map((key) => {
         const Section = SECTIONS[key]
         if (!Section) return null
-        if (key === 'hero') return <Section key={key} />
+        if (key === 'hero') return <Section key={key} categories={categories} />
         if (key === 'popular') return <Section key={key} />
         if (key === 'categories') {
           return (

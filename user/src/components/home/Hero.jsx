@@ -1,157 +1,193 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { Search, ShieldCheck, Clock, Star } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { Grid3X3 } from 'lucide-react'
 import { useTheme } from '../../context/ThemeContext.jsx'
 
-const TRUST_ITEMS = [
-  { icon: ShieldCheck, label: 'Verified pros', short: 'Verified pros' },
-  { icon: Clock, label: 'On-time service', short: 'On-time' },
-  { icon: Star, label: 'Top rated', short: 'Top rated' },
+const TILES = [
+  {
+    key: 'instant',
+    label: 'InstaHelp',
+    categoryNames: ['Instant Help'],
+    emoji: '👩‍🔧',
+    href: '/services',
+  },
+  {
+    key: 'women',
+    label: "Women's Salon & Spa",
+    categoryNames: ["Women's Salon"],
+    emoji: '🧖‍♀️',
+  },
+  {
+    key: 'men',
+    label: "Men's Salon & Massage",
+    categoryNames: ["Men's Salon"],
+    emoji: '🧔',
+  },
+  {
+    key: 'cleaning',
+    label: 'Cleaning & Pest Control',
+    categoryNames: ['Cleaning Services', 'Pest Control'],
+    emoji: '🧹',
+    badge: '30 mins',
+  },
+  {
+    key: 'paint',
+    label: 'Painting & Waterproofing',
+    categoryNames: ['Home Improvement'],
+    emoji: '🖌️',
+  },
+  {
+    key: 'ac',
+    label: 'AC & Appliance Repair',
+    categoryNames: ['Appliance Repair'],
+    emoji: '❄️',
+    badge: '25 mins',
+  },
+  {
+    key: 'home',
+    label: 'Electrician, Plumber & Carpenter',
+    categoryNames: ['Home Services'],
+    emoji: '🔧',
+    badge: '25 mins',
+  },
+  {
+    key: 'all',
+    label: 'All services',
+    emoji: null,
+    href: '/services',
+  },
 ]
 
-const blockStyle = (pos) => {
-  const align = pos?.align || 'center'
-  const transform =
-    align === 'left' ? 'translate(0, -50%)' : align === 'right' ? 'translate(-100%, -50%)' : 'translate(-50%, -50%)'
-  return {
-    left: `${pos?.x ?? 50}%`,
-    top: `${pos?.y ?? 50}%`,
-    transform,
-    textAlign: align,
-    width: `${pos?.width ?? 90}%`,
-    maxWidth: `${pos?.width ?? 90}%`,
-    color: pos?.color || '#ffffff',
-    fontSize: pos?.fontSize ? `${pos.fontSize}px` : undefined,
-  }
+const PRODUCTS = [
+  {
+    label: 'Native Water Purifier',
+    emoji: '🚰',
+    badge: 'New',
+    badgeTone: 'violet',
+  },
+  {
+    label: 'Native Smart Locks',
+    emoji: '🔐',
+  },
+]
+
+const COLLAGE = {
+  salon: {
+    src: 'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=700&q=80',
+    alt: 'Salon at home',
+  },
+  massage: {
+    src: 'https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=700&q=80',
+    alt: 'Massage therapy',
+  },
+  chimney: {
+    src: 'https://images.unsplash.com/photo-1556911220-bff31c812dba?w=700&q=80',
+    alt: 'Chimney repair',
+  },
+  ac: {
+    src: 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=700&q=80',
+    alt: 'AC service',
+  },
 }
 
-const HeroBlock = ({ pos, className = '', children }) => {
-  if (pos?.visible === false) return null
-  return (
-    <div className={`absolute z-10 ${className}`} style={blockStyle(pos)}>
-      {children}
+const resolveHref = (tile, categories = []) => {
+  if (tile.href) return tile.href
+  const match = categories.find((c) => tile.categoryNames?.includes(c.name))
+  return match ? `/services?category=${match._id}` : '/services'
+}
+
+const ServiceTile = ({ tile, to }) => (
+  <Link to={to} className="group flex flex-col items-center text-center">
+    <div className="relative flex h-[72px] w-full items-center justify-center rounded-xl bg-slate-100 transition group-hover:bg-slate-200/80 sm:h-[80px]">
+      {tile.badge && (
+        <span className="absolute -top-2 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap rounded bg-emerald-500 px-1.5 py-0.5 text-[10px] font-semibold text-white shadow-sm">
+          {tile.badge}
+        </span>
+      )}
+      {tile.key === 'all' ? (
+        <Grid3X3 className="h-8 w-8 text-slate-500" strokeWidth={1.75} />
+      ) : (
+        <span className="text-3xl leading-none sm:text-[2rem]" role="img" aria-hidden>
+          {tile.emoji}
+        </span>
+      )}
     </div>
-  )
-}
+    <span className="mt-2 line-clamp-2 text-[11px] font-medium leading-snug text-slate-800 sm:text-xs">
+      {tile.label}
+    </span>
+  </Link>
+)
 
-const Hero = () => {
-  const navigate = useNavigate()
+const Hero = ({ categories = [] }) => {
   const { theme } = useTheme()
-  const [search, setSearch] = useState('')
-  const { content, images, heroLayout, heroSettings } = theme
-  const desktop = heroLayout?.desktop || {}
-  const mobile = heroLayout?.mobile || {}
-  const overlay = (heroSettings?.overlayDarkness ?? 65) / 100
-
-  const onSearch = (e) => {
-    e.preventDefault()
-    navigate(`/services?search=${encodeURIComponent(search)}`)
-  }
-
-  const searchForm = (size = 'desktop') => {
-    if (size === 'mobile' && heroSettings?.showSearch === false) return null
-    if (size === 'desktop' && heroSettings?.showSearch === false) return null
-    const placeholder = size === 'mobile' ? content.searchPlaceholderMobile : content.searchPlaceholder
-    return (
-      <form
-        onSubmit={onSearch}
-        className={`flex w-full items-center gap-1 rounded-full bg-white shadow-lg ${
-          size === 'mobile' ? 'p-1' : 'border border-white/40 bg-white/95 p-1.5 backdrop-blur-md'
-        }`}
-        style={{ borderRadius: theme.buttons?.radius || '9999px' }}
-      >
-        <div className="flex min-w-0 flex-1 items-center pl-2">
-          <Search className={`shrink-0 text-slate-400 ${size === 'mobile' ? 'h-4 w-4' : 'ml-1 h-5 w-5'}`} />
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder={placeholder || 'Search...'}
-            className={`w-full min-w-0 bg-transparent text-slate-900 outline-none placeholder:text-slate-400 ${
-              size === 'mobile' ? 'px-2.5 py-2.5 text-sm' : 'px-3 py-2.5 text-sm'
-            }`}
-          />
-        </div>
-        <button
-          type="submit"
-          className="btn-primary shrink-0 rounded-full px-5 py-2.5 text-xs font-semibold sm:text-sm"
-          style={{ borderRadius: theme.buttons?.radius || '9999px', color: theme.colors?.buttonText || '#fff' }}
-        >
-          Search
-        </button>
-      </form>
-    )
-  }
-
-  const trustRow = (size = 'desktop') => {
-    if (heroSettings?.showTrustBadges === false) return null
-    return (
-      <div className={`flex items-center justify-center gap-0 ${size === 'mobile' ? '' : 'flex-wrap gap-3'}`}>
-        {TRUST_ITEMS.map((item, i) => (
-          <span key={item.label} className="flex items-center">
-            {i > 0 && size === 'mobile' && <span className="mx-2 h-3 w-px bg-white/30" aria-hidden />}
-            <span
-              className={`inline-flex items-center gap-1 font-medium ${
-                size === 'mobile'
-                  ? 'text-[10px] text-white/90'
-                  : 'rounded-full border border-white/25 bg-black/35 px-4 py-2 text-xs text-white backdrop-blur-sm'
-              }`}
-              style={{ color: mobile.trust?.color || desktop.trust?.color || undefined }}
-            >
-              <item.icon className={`shrink-0 ${size === 'mobile' ? 'h-3 w-3' : 'h-4 w-4'}`} strokeWidth={2.5} />
-              {size === 'mobile' ? item.short : item.label}
-            </span>
-          </span>
-        ))}
-      </div>
-    )
-  }
+  const title = theme.content?.heroTitle || 'Home services at your doorstep'
 
   return (
-    <section className="relative -mt-[3.75rem] w-full sm:-mt-20">
-      <img src={images.heroMobile || '/mobileHeroBg.png'} alt="" className="block h-auto w-full sm:hidden" fetchPriority="high" />
-      <img src={images.heroDesktop || '/heroBg.png'} alt="" className="hidden h-auto w-full sm:block" fetchPriority="high" />
+    <section className="bg-white pt-4 sm:pt-6">
+      <div className="mx-auto grid max-w-6xl items-start gap-8 px-4 pb-6 sm:px-6 lg:grid-cols-2 lg:gap-10 lg:pb-10 lg:pt-2">
+        {/* Left: headline + service picker */}
+        <div className="min-w-0">
+          <h1 className="whitespace-nowrap text-[1.35rem] font-bold leading-tight tracking-tight text-slate-900 sm:text-3xl lg:text-[2.25rem]">
+            {title}
+          </h1>
 
-      <div
-        className="pointer-events-none absolute inset-0 sm:hidden"
-        style={{
-          background: `linear-gradient(to bottom, rgba(0,0,0,${overlay}) 0%, transparent 22%, transparent 45%, rgba(0,0,0,${overlay * 0.9}) 72%, rgba(0,0,0,${overlay * 1.1}) 100%)`,
-        }}
-        aria-hidden
-      />
-      <div
-        className="pointer-events-none absolute inset-0 hidden sm:block"
-        style={{ background: `linear-gradient(135deg, rgba(0,0,0,${overlay + 0.1}) 0%, rgba(0,0,0,${overlay * 0.6}) 100%)` }}
-        aria-hidden
-      />
+          <div className="mt-5 rounded-2xl border border-slate-200 bg-white p-4 shadow-[0_4px_24px_rgba(0,0,0,0.06)] sm:mt-6 sm:p-5">
+            <div className="grid grid-cols-4 gap-x-2 gap-y-4 sm:gap-x-3 sm:gap-y-5">
+              {TILES.map((tile) => (
+                <ServiceTile key={tile.key} tile={tile} to={resolveHref(tile, categories)} />
+              ))}
+            </div>
 
-      <div className="absolute inset-0 sm:hidden">
-        <HeroBlock pos={mobile.eyebrow}>
-          <span className="inline-flex items-center rounded-full border border-white/25 bg-white/10 px-3.5 py-1 font-semibold uppercase tracking-[0.18em] backdrop-blur-md">
-            {content.heroEyebrow}
-          </span>
-        </HeroBlock>
-        <HeroBlock pos={mobile.title}>
-          <h1 className="font-bold leading-[1.12] tracking-tight drop-shadow-[0_2px_10px_rgba(0,0,0,0.4)]">{content.heroTitle}</h1>
-        </HeroBlock>
-        <HeroBlock pos={mobile.subtitle}>
-          <p className="leading-relaxed opacity-90">{content.heroSubtitleMobile}</p>
-        </HeroBlock>
-        <HeroBlock pos={mobile.search}>{searchForm('mobile')}</HeroBlock>
-        <HeroBlock pos={mobile.trust}>{trustRow('mobile')}</HeroBlock>
-      </div>
+            <div className="mt-5 border-t border-slate-100 pt-4 sm:mt-6 sm:pt-5">
+              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Native Smart Products</p>
+              <div className="mt-3 grid grid-cols-2 gap-3 sm:gap-4">
+                {PRODUCTS.map((product) => (
+                  <div key={product.label} className="relative flex flex-col items-center rounded-xl bg-slate-50 px-3 py-3 text-center">
+                    {product.badge && (
+                      <span className="absolute left-2 top-2 rounded bg-violet-600 px-1.5 py-0.5 text-[10px] font-semibold text-white">
+                        {product.badge}
+                      </span>
+                    )}
+                    <span className="text-3xl" role="img" aria-hidden>
+                      {product.emoji}
+                    </span>
+                    <span className="mt-2 text-[11px] font-medium leading-snug text-slate-800 sm:text-xs">
+                      {product.label}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
 
-      <div className="absolute inset-0 hidden sm:block">
-        <HeroBlock pos={desktop.eyebrow}>
-          <p className="font-semibold uppercase tracking-[0.25em] opacity-75">{content.heroEyebrow}</p>
-        </HeroBlock>
-        <HeroBlock pos={desktop.title}>
-          <h1 className="font-extrabold leading-[1.1] tracking-tight drop-shadow-[0_2px_16px_rgba(0,0,0,0.45)]">{content.heroTitle}</h1>
-        </HeroBlock>
-        <HeroBlock pos={desktop.subtitle}>
-          <p className="font-medium leading-relaxed opacity-90 drop-shadow-[0_1px_8px_rgba(0,0,0,0.4)]">{content.heroSubtitle}</p>
-        </HeroBlock>
-        <HeroBlock pos={desktop.search}>{searchForm('desktop')}</HeroBlock>
-        <HeroBlock pos={desktop.trust}>{trustRow('desktop')}</HeroBlock>
+        {/* Right: photo collage (tall | short / short | tall) */}
+        <div className="hidden h-[480px] grid-cols-2 gap-3 lg:grid xl:h-[520px] xl:gap-4">
+          <div className="flex min-h-0 flex-col gap-3 xl:gap-4">
+            <div className="min-h-0 flex-[1.35] overflow-hidden rounded-2xl bg-slate-100">
+              <img src={COLLAGE.salon.src} alt={COLLAGE.salon.alt} className="h-full w-full object-cover" loading="eager" />
+            </div>
+            <div className="min-h-0 flex-1 overflow-hidden rounded-2xl bg-slate-100">
+              <img src={COLLAGE.chimney.src} alt={COLLAGE.chimney.alt} className="h-full w-full object-cover" loading="lazy" />
+            </div>
+          </div>
+          <div className="flex min-h-0 flex-col gap-3 xl:gap-4">
+            <div className="min-h-0 flex-1 overflow-hidden rounded-2xl bg-slate-100">
+              <img src={COLLAGE.massage.src} alt={COLLAGE.massage.alt} className="h-full w-full object-cover" loading="eager" />
+            </div>
+            <div className="min-h-0 flex-[1.35] overflow-hidden rounded-2xl bg-slate-100">
+              <img src={COLLAGE.ac.src} alt={COLLAGE.ac.alt} className="h-full w-full object-cover" loading="lazy" />
+            </div>
+          </div>
+        </div>
+
+        {/* Mobile collage — horizontal strip */}
+        <div className="flex gap-2 overflow-x-auto pb-1 lg:hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {Object.values(COLLAGE).map((img) => (
+            <div key={img.alt} className="h-40 w-36 shrink-0 overflow-hidden rounded-xl bg-slate-100 sm:h-48 sm:w-44">
+              <img src={img.src} alt={img.alt} className="h-full w-full object-cover" loading="lazy" />
+            </div>
+          ))}
+        </div>
       </div>
     </section>
   )
