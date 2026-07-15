@@ -27,7 +27,6 @@ const TILES = [
     label: 'Cleaning & Pest Control',
     categoryNames: ['Cleaning Services', 'Pest Control'],
     image: '/hero/cleaning-pest.webp',
-    badge: '30 mins',
   },
   {
     key: 'paint',
