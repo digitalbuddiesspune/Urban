@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react'
+import { useAuth } from './AuthContext.jsx'
 
 const STORAGE_KEY = 'ue_cart'
 const CartContext = createContext(null)
@@ -14,13 +15,23 @@ const loadCart = () => {
 }
 
 export const CartProvider = ({ children }) => {
-  const [items, setItems] = useState(() => loadCart())
+  const { user } = useAuth()
+  const [items, setItems] = useState(() => (localStorage.getItem('ue_user_token') ? loadCart() : []))
 
   useEffect(() => {
+    if (!user) {
+      setItems((prev) => (prev.length === 0 ? prev : []))
+      localStorage.removeItem(STORAGE_KEY)
+    }
+  }, [user])
+
+  useEffect(() => {
+    if (!user) return
     localStorage.setItem(STORAGE_KEY, JSON.stringify(items))
-  }, [items])
+  }, [user, items])
 
   const addItem = (service, schedule = {}) => {
+    if (!user) return { ok: false, alreadyInCart: false }
     if (!service?._id) return { ok: false, alreadyInCart: false }
 
     const alreadyInCart = items.some((i) => i.serviceId === service._id)

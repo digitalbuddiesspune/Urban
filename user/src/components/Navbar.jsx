@@ -95,14 +95,15 @@ const Navbar = () => {
               <span className="hidden lg:inline">{geoStatus === 'loading' ? 'Locating…' : geo ? 'Near me' : 'Location'}</span>
             </button>
             <Link
-              to="/cart"
+              to={user ? '/cart' : '/login'}
+              state={user ? undefined : { from: { pathname: '/cart' } }}
               className={`relative flex items-center gap-1.5 rounded-full px-3 py-2 text-sm font-medium transition ${
                 isDarkNav ? 'text-white/90 hover:bg-white/10' : isHome ? 'text-slate-800 hover:bg-black/5' : 'text-slate-600 hover:bg-slate-50 hover:text-violet-700'
               }`}
             >
               <ShoppingCart className="h-4 w-4" />
               <span className="hidden lg:inline">Cart</span>
-              {count > 0 && (
+              {user && count > 0 && (
                 <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-violet-600 px-1 text-[10px] font-bold text-white">
                   {count > 9 ? '9+' : count}
                 </span>
@@ -185,14 +186,15 @@ const Navbar = () => {
                   </Link>
                 ))}
                 <Link
-                  to="/cart"
+                  to={user ? '/cart' : '/login'}
+                  state={user ? undefined : { from: { pathname: '/cart' } }}
                   onClick={close}
                   className={`flex items-center justify-between rounded-lg px-3 py-3 text-sm font-medium transition-colors ${
                     isDarkNav ? 'text-white hover:bg-white/10' : 'text-slate-800 hover:bg-black/5'
                   }`}
                 >
                   <span>Cart</span>
-                  {count > 0 && (
+                  {user && count > 0 && (
                     <span className="rounded-full bg-violet-600 px-2 py-0.5 text-xs font-bold text-white">{count}</span>
                   )}
                 </Link>

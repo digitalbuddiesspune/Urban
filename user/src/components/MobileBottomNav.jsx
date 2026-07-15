@@ -6,7 +6,7 @@ import { useCart } from '../context/CartContext.jsx'
 const TABS = [
   { to: '/', label: 'Home', icon: Home, end: true },
   { to: '/services', label: 'Services', icon: Grid3X3, match: '/services' },
-  { to: '/cart', label: 'Cart', icon: ShoppingCart, match: '/cart', cart: true },
+  { to: '/cart', label: 'Cart', icon: ShoppingCart, match: '/cart', cart: true, auth: true },
   { to: '/bookings', label: 'Bookings', icon: CalendarCheck, auth: true, match: '/bookings' },
   { to: '/profile', label: 'Profile', icon: User, auth: true, match: '/profile' },
 ]
@@ -52,7 +52,7 @@ const MobileBottomNav = () => {
                   <>
                     <span className="relative">
                       <tab.icon className="h-5 w-5" strokeWidth={active ? 2.4 : 1.8} />
-                      {tab.cart && count > 0 && (
+                      {tab.cart && user && count > 0 && (
                         <span className="absolute -right-2 -top-1.5 flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-violet-600 px-0.5 text-[9px] font-bold leading-none text-white">
                           {count > 9 ? '9+' : count}
                         </span>

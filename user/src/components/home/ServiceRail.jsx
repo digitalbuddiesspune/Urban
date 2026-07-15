@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { ChevronRight, Star, Zap } from 'lucide-react'
 import { formatCurrency } from '../../utils/helpers.js'
+import { useAuth } from '../../context/AuthContext.jsx'
 import { useCart } from '../../context/CartContext.jsx'
 import ScheduleServiceModal from '../ScheduleServiceModal.jsx'
 
@@ -75,6 +76,9 @@ export const ServiceRailCard = ({ service, showInstant = true, onRequestAdd }) =
 
 const ServiceRail = ({ services, showInstant = true }) => {
   const carouselRef = useRef(null)
+  const navigate = useNavigate()
+  const location = useLocation()
+  const { user } = useAuth()
   const [canScrollRight, setCanScrollRight] = useState(false)
   const [scheduleService, setScheduleService] = useState(null)
   const { addItem } = useCart()
@@ -103,7 +107,26 @@ const ServiceRail = ({ services, showInstant = true }) => {
     el.scrollBy({ left: el.clientWidth * 0.75, behavior: 'smooth' })
   }
 
+  const requireLogin = () => {
+    toast.error('Please login to add to cart')
+    navigate('/login', {
+      state: { from: { pathname: location.pathname, search: location.search } },
+    })
+  }
+
+  const handleRequestAdd = (service) => {
+    if (!user) {
+      requireLogin()
+      return
+    }
+    setScheduleService(service)
+  }
+
   const handleConfirmSchedule = ({ bookingDate, bookingTime }) => {
+    if (!user) {
+      requireLogin()
+      return
+    }
     const result = addItem(scheduleService, { bookingDate, bookingTime })
     if (!result.ok) return
     toast.success(result.alreadyInCart ? 'Schedule updated in cart' : 'Added to cart')
@@ -124,7 +147,7 @@ const ServiceRail = ({ services, showInstant = true }) => {
               key={service._id}
               service={service}
               showInstant={showInstant}
-              onRequestAdd={setScheduleService}
+              onRequestAdd={handleRequestAdd}
             />
           ))}
         </div>
