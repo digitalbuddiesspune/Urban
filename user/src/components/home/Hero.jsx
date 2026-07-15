@@ -26,7 +26,7 @@ const TILES = [
     key: 'cleaning',
     label: 'Cleaning & Pest Control',
     categoryNames: ['Cleaning Services', 'Pest Control'],
-    emoji: '🧹',
+    image: '/hero/cleaning-pest.webp',
     badge: '30 mins',
   },
   {
