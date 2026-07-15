@@ -57,13 +57,12 @@ const TILES = [
 const PRODUCTS = [
   {
     label: 'Native Water Purifier',
-    emoji: '🚰',
+    image: '/hero/water-purifier.webp',
     badge: 'New',
-    badgeTone: 'violet',
   },
   {
     label: 'Native Smart Locks',
-    emoji: '🔐',
+    image: '/hero/smart-lock.webp',
   },
 ]
 
@@ -142,19 +141,30 @@ const Hero = ({ categories = [] }) => {
             </div>
 
             <div className="mt-5 border-t border-slate-100 pt-4 sm:mt-6 sm:pt-5">
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Native Smart Products</p>
-              <div className="mt-3 grid grid-cols-2 gap-3 sm:gap-4">
+              <p className="text-sm font-semibold text-slate-700">Native Smart Products</p>
+              <div className="mt-3 grid grid-cols-4 gap-x-2 gap-y-4 sm:gap-x-3 sm:gap-y-5">
                 {PRODUCTS.map((product) => (
-                  <div key={product.label} className="relative flex flex-col items-center rounded-xl bg-slate-50 px-3 py-3 text-center">
-                    {product.badge && (
-                      <span className="absolute left-2 top-2 rounded bg-violet-600 px-1.5 py-0.5 text-[10px] font-semibold text-white">
-                        {product.badge}
-                      </span>
-                    )}
-                    <span className="text-3xl" role="img" aria-hidden>
-                      {product.emoji}
-                    </span>
-                    <span className="mt-2 text-[11px] font-medium leading-snug text-slate-800 sm:text-xs">
+                  <div key={product.label} className="flex flex-col items-center text-center">
+                    <div className="relative flex h-[72px] w-full items-center justify-center overflow-hidden rounded-xl bg-slate-100 sm:h-[80px]">
+                      {product.badge && (
+                        <span className="absolute right-0 top-0 z-10 rounded-bl-md bg-rose-500 px-1.5 py-0.5 text-[10px] font-semibold text-white">
+                          {product.badge}
+                        </span>
+                      )}
+                      {product.image ? (
+                        <img
+                          src={product.image}
+                          alt=""
+                          className="h-full w-full object-contain object-center p-1"
+                          loading="lazy"
+                        />
+                      ) : (
+                        <span className="text-3xl leading-none" role="img" aria-hidden>
+                          {product.emoji}
+                        </span>
+                      )}
+                    </div>
+                    <span className="mt-2 line-clamp-2 text-[11px] font-medium leading-snug text-slate-800 sm:text-xs">
                       {product.label}
                     </span>
                   </div>
