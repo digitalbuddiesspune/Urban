@@ -6,6 +6,7 @@ import { PageLoader } from '../components/ui/Loader.jsx'
 import StarRating from '../components/ui/StarRating.jsx'
 import { formatCurrency, formatDate } from '../utils/helpers.js'
 import { useAuth } from '../context/AuthContext.jsx'
+import { useLocation } from '../context/LocationContext.jsx'
 
 const FALLBACK = 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=900'
 
@@ -13,15 +14,22 @@ const ServiceDetails = () => {
   const { id } = useParams()
   const navigate = useNavigate()
   const { user } = useAuth()
+  const { location } = useLocation()
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    const params = new URLSearchParams()
+    if (location?.lat != null && location?.lng != null) {
+      params.set('lat', String(location.lat))
+      params.set('lng', String(location.lng))
+    }
+    const q = params.toString()
     api
-      .get(`/user/services/${id}`)
+      .get(`/user/services/${id}${q ? `?${q}` : ''}`)
       .then((r) => setData(r.data))
       .finally(() => setLoading(false))
-  }, [id])
+  }, [id, location])
 
   if (loading) return <PageLoader />
   if (!data?.service) return <p className="py-16 text-center text-slate-500">Service not found</p>
@@ -73,9 +81,17 @@ const ServiceDetails = () => {
 
             <div className="mt-5 flex items-center gap-2 rounded-xl bg-violet-50 p-3 sm:mt-6 sm:p-4">
               <BadgeCheck className="h-5 w-5 shrink-0 text-violet-600" />
-              <span className="text-sm text-slate-700">
-                Provided by <strong>{service.vendorId?.businessName || service.vendorId?.name}</strong>
-              </span>
+              <div className="min-w-0 text-sm text-slate-700">
+                <p>
+                  Provided by <strong>{service.vendorId?.businessName || service.vendorId?.name}</strong>
+                  {service.vendorId?.city ? ` · ${service.vendorId.city}` : ''}
+                </p>
+                {service.distanceLabel && (
+                  <p className="mt-0.5 flex items-center gap-1 text-xs font-medium text-slate-600">
+                    <MapPin className="h-3.5 w-3.5" /> {service.distanceLabel} from you
+                  </p>
+                )}
+              </div>
             </div>
           </div>
 

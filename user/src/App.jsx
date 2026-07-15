@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
 import { AuthProvider } from './context/AuthContext.jsx'
 import { ThemeProvider } from './context/ThemeContext.jsx'
+import { LocationProvider } from './context/LocationContext.jsx'
 import ProtectedRoute from './routes/ProtectedRoute.jsx'
 import MainLayout from './layouts/MainLayout.jsx'
 import Home from './pages/Home.jsx'
@@ -17,6 +18,7 @@ function App() {
   return (
     <AuthProvider>
       <ThemeProvider>
+        <LocationProvider>
         <BrowserRouter>
         <Toaster position="top-center" toastOptions={{ duration: 3000 }} />
         <Routes>
@@ -54,6 +56,7 @@ function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
         </BrowserRouter>
+        </LocationProvider>
       </ThemeProvider>
     </AuthProvider>
   )

@@ -1,22 +1,60 @@
 import { useEffect, useState } from 'react'
 import toast from 'react-hot-toast'
-import { Plus, Search, Pencil, Trash2, Ban, CheckCircle2, Store } from 'lucide-react'
+import { Plus, Search, Pencil, Trash2, Ban, CheckCircle2, Store, MapPin, Navigation } from 'lucide-react'
 import api from '../api/axios.js'
 import { PageLoader } from '../components/ui/Loader.jsx'
 import Spinner from '../components/ui/Loader.jsx'
 import EmptyState from '../components/ui/EmptyState.jsx'
 import StatusBadge from '../components/ui/StatusBadge.jsx'
 import ConfirmModal from '../components/ui/ConfirmModal.jsx'
+import { coordsFromVendor, detectBrowserLocation } from '../utils/location.js'
 
-const emptyForm = { name: '', email: '', phone: '', password: '', businessName: '', serviceAreas: '' }
+const emptyForm = {
+  name: '',
+  email: '',
+  phone: '',
+  password: '',
+  businessName: '',
+  serviceAreas: '',
+  city: '',
+  address: '',
+  pincode: '',
+  lat: '',
+  lng: '',
+}
 
 const VendorForm = ({ initial, onClose, onSaved }) => {
+  const coords = coordsFromVendor(initial)
   const [form, setForm] = useState(
     initial
-      ? { ...initial, password: '', serviceAreas: (initial.serviceAreas || []).join(', ') }
-      : emptyForm
+      ? {
+          ...emptyForm,
+          ...initial,
+          password: '',
+          serviceAreas: (initial.serviceAreas || []).join(', '),
+          city: initial.city || '',
+          address: initial.address || '',
+          pincode: initial.pincode || '',
+          lat: coords.lat,
+          lng: coords.lng,
+        }
+      : emptyForm,
   )
   const [saving, setSaving] = useState(false)
+  const [detecting, setDetecting] = useState(false)
+
+  const detect = async () => {
+    setDetecting(true)
+    try {
+      const pos = await detectBrowserLocation()
+      setForm((f) => ({ ...f, lat: String(pos.lat), lng: String(pos.lng) }))
+      toast.success('Location detected')
+    } catch (err) {
+      toast.error(err.message)
+    } finally {
+      setDetecting(false)
+    }
+  }
 
   const submit = async (e) => {
     e.preventDefault()
@@ -28,6 +66,11 @@ const VendorForm = ({ initial, onClose, onSaved }) => {
         phone: form.phone,
         businessName: form.businessName,
         serviceAreas: form.serviceAreas ? form.serviceAreas.split(',').map((s) => s.trim()).filter(Boolean) : [],
+        city: form.city,
+        address: form.address,
+        pincode: form.pincode,
+        lat: form.lat,
+        lng: form.lng,
       }
       if (form.password) payload.password = form.password
 
@@ -48,8 +91,9 @@ const VendorForm = ({ initial, onClose, onSaved }) => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={onClose}>
-      <div className="card max-h-[90vh] w-full max-w-md overflow-y-auto p-6" onClick={(e) => e.stopPropagation()}>
+      <div className="card max-h-[90vh] w-full max-w-lg overflow-y-auto p-6" onClick={(e) => e.stopPropagation()}>
         <h3 className="text-lg font-semibold text-slate-900">{initial ? 'Edit vendor' : 'Create vendor account'}</h3>
+        <p className="mt-1 text-xs text-slate-500">Location is required so customers get the nearest vendor.</p>
         <form onSubmit={submit} className="mt-4 space-y-3">
           <input className="input" placeholder="Owner name" required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
           <input className="input" placeholder="Business name" value={form.businessName} onChange={(e) => setForm({ ...form, businessName: e.target.value })} />
@@ -64,6 +108,47 @@ const VendorForm = ({ initial, onClose, onSaved }) => {
             onChange={(e) => setForm({ ...form, password: e.target.value })}
           />
           <input className="input" placeholder="Service areas (comma separated)" value={form.serviceAreas} onChange={(e) => setForm({ ...form, serviceAreas: e.target.value })} />
+
+          <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+            <p className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-slate-800">
+              <MapPin className="h-4 w-4" /> Base location
+            </p>
+            <div className="space-y-2">
+              <input className="input" placeholder="City *" required value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} />
+              <input className="input" placeholder="Full address *" required value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} />
+              <input className="input" placeholder="Pincode" value={form.pincode} onChange={(e) => setForm({ ...form, pincode: e.target.value })} />
+              <div className="grid grid-cols-2 gap-2">
+                <input
+                  className="input"
+                  type="number"
+                  step="any"
+                  placeholder="Latitude *"
+                  required={!initial}
+                  value={form.lat}
+                  onChange={(e) => setForm({ ...form, lat: e.target.value })}
+                />
+                <input
+                  className="input"
+                  type="number"
+                  step="any"
+                  placeholder="Longitude *"
+                  required={!initial}
+                  value={form.lng}
+                  onChange={(e) => setForm({ ...form, lng: e.target.value })}
+                />
+              </div>
+              <button
+                type="button"
+                onClick={detect}
+                disabled={detecting}
+                className="flex w-full items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white py-2 text-sm font-medium text-slate-700 hover:bg-slate-100"
+              >
+                {detecting ? <Spinner className="h-4 w-4" /> : <Navigation className="h-4 w-4" />}
+                Detect location from this device
+              </button>
+            </div>
+          </div>
+
           <div className="flex gap-3 pt-2">
             <button type="button" onClick={onClose} className="flex-1 rounded-xl border border-slate-200 py-2.5 font-medium text-slate-700">
               Cancel
@@ -162,6 +247,7 @@ const Vendors = () => {
                 <th className="p-4">Vendor</th>
                 <th className="p-4">Contact</th>
                 <th className="p-4">Areas</th>
+                <th className="p-4">Location</th>
                 <th className="p-4">Rating</th>
                 <th className="p-4">Status</th>
                 <th className="p-4 text-right">Actions</th>
@@ -179,6 +265,17 @@ const Vendors = () => {
                     <p className="text-xs text-slate-400">{v.phone}</p>
                   </td>
                   <td className="p-4 text-slate-500">{v.serviceAreas?.join(', ') || '-'}</td>
+                  <td className="p-4 text-slate-600">
+                    {v.city ? (
+                      <span className="flex items-center gap-1 text-xs">
+                        <MapPin className="h-3.5 w-3.5 shrink-0" />
+                        {v.city}
+                        {v.location?.coordinates?.length === 2 ? '' : ' (no GPS)'}
+                      </span>
+                    ) : (
+                      <span className="text-xs text-amber-600">Missing</span>
+                    )}
+                  </td>
                   <td className="p-4 text-slate-600">{v.rating || 0} ★</td>
                   <td className="p-4">
                     <StatusBadge status={v.status} />

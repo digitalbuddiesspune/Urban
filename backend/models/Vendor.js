@@ -10,6 +10,20 @@ const vendorSchema = new mongoose.Schema(
     role: { type: String, default: 'vendor' },
     businessName: { type: String, trim: true },
     serviceAreas: [{ type: String }],
+    /** Human-readable address for the vendor base / shop */
+    address: { type: String, default: '', trim: true },
+    city: { type: String, default: '', trim: true },
+    pincode: { type: String, default: '', trim: true },
+    /** GeoJSON Point — coordinates are [longitude, latitude] */
+    location: {
+      type: {
+        type: String,
+        enum: ['Point'],
+      },
+      coordinates: {
+        type: [Number],
+      },
+    },
     profileImage: { type: String, default: '' },
     status: { type: String, enum: ['active', 'blocked'], default: 'active' },
     createdByAdmin: { type: Boolean, default: true },
@@ -23,6 +37,8 @@ const vendorSchema = new mongoose.Schema(
   },
   { timestamps: true }
 )
+
+vendorSchema.index({ location: '2dsphere' }, { sparse: true })
 
 vendorSchema.pre('save', async function (next) {
   if (!this.isModified('password')) return next()

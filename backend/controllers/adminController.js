@@ -7,17 +7,37 @@ import Review from '../models/Review.js'
 import Settings from '../models/Settings.js'
 import { buildAdminAlerts } from '../utils/dashboardAlerts.js'
 import { defaultUserSiteTheme, mergeUserSiteTheme } from '../utils/defaultUserSiteTheme.js'
+import { toGeoPoint } from '../utils/geo.js'
 
 // ---------- Vendors ----------
+
+const applyVendorLocation = (vendor, body) => {
+  if (body.address !== undefined) vendor.address = body.address
+  if (body.city !== undefined) vendor.city = body.city
+  if (body.pincode !== undefined) vendor.pincode = body.pincode
+  if (body.lat !== undefined || body.lng !== undefined || body.latitude !== undefined || body.longitude !== undefined) {
+    const point = toGeoPoint(body.lat ?? body.latitude, body.lng ?? body.longitude)
+    if (point) vendor.location = point
+  }
+}
 
 // @desc Create vendor account
 // @route POST /api/admin/vendors
 export const createVendor = asyncHandler(async (req, res) => {
-  const { name, email, phone, password, businessName, serviceAreas } = req.body
+  const { name, email, phone, password, businessName, serviceAreas, address, city, pincode, lat, lng } = req.body
 
   if (!name || !email || !password) {
     res.status(400)
     throw new Error('Name, email and password are required')
+  }
+  if (!city || !address) {
+    res.status(400)
+    throw new Error('Vendor city and address are required for nearest allocation')
+  }
+  const point = toGeoPoint(lat, lng)
+  if (!point) {
+    res.status(400)
+    throw new Error('Valid latitude and longitude are required so customers can find nearby vendors')
   }
 
   const exists = await Vendor.findOne({ email })
@@ -33,6 +53,10 @@ export const createVendor = asyncHandler(async (req, res) => {
     password,
     businessName,
     serviceAreas: serviceAreas || [],
+    address,
+    city,
+    pincode: pincode || '',
+    location: point,
     createdByAdmin: true,
   })
 
@@ -63,6 +87,7 @@ export const updateVendor = asyncHandler(async (req, res) => {
   fields.forEach((f) => {
     if (req.body[f] !== undefined) vendor[f] = req.body[f]
   })
+  applyVendorLocation(vendor, req.body)
   if (req.body.password) vendor.password = req.body.password
 
   const updated = await vendor.save()

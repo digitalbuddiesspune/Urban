@@ -1,13 +1,15 @@
 import { Link, NavLink, useLocation } from 'react-router-dom'
 import { useEffect, useState } from 'react'
-import { Sparkles, User, CalendarCheck } from 'lucide-react'
+import { Sparkles, User, CalendarCheck, MapPin } from 'lucide-react'
 import { useAuth } from '../context/AuthContext.jsx'
 import { useTheme } from '../context/ThemeContext.jsx'
+import { useLocation as useUserGeo } from '../context/LocationContext.jsx'
 import { getNavbarMobilePanelClass, getNavbarShellClass } from '../utils/theme.js'
 
 const Navbar = () => {
   const { user } = useAuth()
   const { theme, siteName } = useTheme()
+  const { location: geo, status: geoStatus, requestLocation } = useUserGeo()
   const [open, setOpen] = useState(false)
   const { pathname } = useLocation()
   const isHome = pathname === '/'
@@ -79,6 +81,17 @@ const Navbar = () => {
           </nav>
 
           <div className="hidden items-center gap-1 md:flex">
+            <button
+              type="button"
+              onClick={requestLocation}
+              title={geo ? 'Update location for nearest vendors' : 'Share location for nearest vendors'}
+              className={`flex items-center gap-1.5 rounded-full px-3 py-2 text-sm font-medium transition ${
+                isDarkNav ? 'text-white/90 hover:bg-white/10' : 'text-slate-600 hover:bg-slate-50'
+              }`}
+            >
+              <MapPin className={`h-4 w-4 ${geo ? 'text-green-600' : ''}`} />
+              <span className="hidden lg:inline">{geoStatus === 'loading' ? 'Locating…' : geo ? 'Near me' : 'Location'}</span>
+            </button>
             {user ? (
               <>
                 <Link

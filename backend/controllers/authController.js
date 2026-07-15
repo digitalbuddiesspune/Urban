@@ -2,6 +2,7 @@ import asyncHandler from '../utils/asyncHandler.js'
 import generateToken from '../utils/generateToken.js'
 import User from '../models/User.js'
 import Vendor from '../models/Vendor.js'
+import { toGeoPoint } from '../utils/geo.js'
 
 // @desc Register a new user
 // @route POST /api/auth/register
@@ -106,6 +107,13 @@ export const updateProfile = asyncHandler(async (req, res) => {
     account.serviceAreas = req.body.serviceAreas ?? account.serviceAreas
     account.profileImage = req.body.profileImage ?? account.profileImage
     if (req.body.workingHours) account.workingHours = req.body.workingHours
+    if (req.body.address !== undefined) account.address = req.body.address
+    if (req.body.city !== undefined) account.city = req.body.city
+    if (req.body.pincode !== undefined) account.pincode = req.body.pincode
+    if (req.body.lat !== undefined || req.body.lng !== undefined) {
+      const point = toGeoPoint(req.body.lat, req.body.lng)
+      if (point) account.location = point
+    }
   }
 
   const updated = await account.save()

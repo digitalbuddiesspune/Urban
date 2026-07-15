@@ -7,6 +7,7 @@ import Vendor from '../models/Vendor.js'
 import User from '../models/User.js'
 import Settings from '../models/Settings.js'
 import { defaultUserSiteTheme, mergeUserSiteTheme } from '../utils/defaultUserSiteTheme.js'
+import { haversineKm, parseLatLng, formatDistanceKm } from '../utils/geo.js'
 
 // @desc Get user-site theme & branding (public)
 // @route GET /api/user/site-theme
@@ -26,10 +27,11 @@ export const getCategories = asyncHandler(async (req, res) => {
   res.json({ success: true, categories })
 })
 
-// @desc Browse / search / filter services
+// @desc Browse / search / filter services (sorted by nearest vendor when lat/lng provided)
 // @route GET /api/user/services
 export const getServices = asyncHandler(async (req, res) => {
-  const { category, search, minPrice, maxPrice, minRating, sort, page = 1, limit = 12 } = req.query
+  const { category, search, minPrice, maxPrice, minRating, sort, page = 1, limit = 12, lat, lng, maxDistanceKm } =
+    req.query
 
   const query = { status: 'approved', isActive: true, availability: true }
   if (category) query.categoryId = category
@@ -41,45 +43,102 @@ export const getServices = asyncHandler(async (req, res) => {
   }
   if (minRating) query.rating = { $gte: Number(minRating) }
 
+  const userLoc = parseLatLng(lat, lng)
+  const sortByNearest = Boolean(userLoc) && (!sort || sort === 'nearest')
+
   let sortBy = '-createdAt'
+  if (sort === 'newest') sortBy = '-createdAt'
   if (sort === 'price_asc') sortBy = 'price'
   if (sort === 'price_desc') sortBy = '-price'
   if (sort === 'rating') sortBy = '-rating'
 
-  const skip = (Number(page) - 1) * Number(limit)
-  const [services, total] = await Promise.all([
-    Service.find(query)
-      .populate('categoryId', 'name')
-      .populate('vendorId', 'name businessName rating')
-      .sort(sortBy)
-      .skip(skip)
-      .limit(Number(limit)),
-    Service.countDocuments(query),
-  ])
+  const pageNum = Number(page) || 1
+  const limitNum = Number(limit) || 12
+
+  // When sorting by distance we load matches then paginate in memory
+  const rawServices = await Service.find(query)
+    .populate('categoryId', 'name')
+    .populate('vendorId', 'name businessName rating city address location status')
+    .sort(sortByNearest ? '-createdAt' : sortBy)
+
+  let services = rawServices
+    .filter((s) => s.vendorId && s.vendorId.status !== 'blocked')
+    .map((s) => {
+      const obj = s.toObject()
+      let distanceKm = null
+      const coords = s.vendorId?.location?.coordinates
+      if (userLoc && Array.isArray(coords) && coords.length === 2) {
+        distanceKm = haversineKm(userLoc.lat, userLoc.lng, coords[1], coords[0])
+      }
+      return {
+        ...obj,
+        distanceKm,
+        distanceLabel: formatDistanceKm(distanceKm),
+      }
+    })
+
+  if (userLoc && maxDistanceKm) {
+    const maxKm = Number(maxDistanceKm)
+    if (Number.isFinite(maxKm) && maxKm > 0) {
+      services = services.filter((s) => s.distanceKm == null || s.distanceKm <= maxKm)
+    }
+  }
+
+  if (sortByNearest) {
+    services.sort((a, b) => {
+      if (a.distanceKm == null && b.distanceKm == null) return 0
+      if (a.distanceKm == null) return 1
+      if (b.distanceKm == null) return -1
+      return a.distanceKm - b.distanceKm
+    })
+  }
+
+  const total = services.length
+  const skip = (pageNum - 1) * limitNum
+  const paged = services.slice(skip, skip + limitNum)
 
   res.json({
     success: true,
-    services,
+    services: paged,
     total,
-    page: Number(page),
-    pages: Math.ceil(total / Number(limit)),
+    page: pageNum,
+    pages: Math.ceil(total / limitNum) || 1,
+    sortedBy: sortByNearest ? 'nearest' : sort || 'newest',
+    userLocation: userLoc,
   })
 })
 
-// @desc Get single service details
+// @desc Get single service details (includes distance when lat/lng query provided)
 // @route GET /api/user/services/:id
 export const getServiceById = asyncHandler(async (req, res) => {
   const service = await Service.findById(req.params.id)
     .populate('categoryId', 'name')
-    .populate('vendorId', 'name businessName rating serviceAreas')
+    .populate('vendorId', 'name businessName rating serviceAreas city address location')
   if (!service) {
     res.status(404)
     throw new Error('Service not found')
   }
+
+  const userLoc = parseLatLng(req.query.lat, req.query.lng)
+  let distanceKm = null
+  const coords = service.vendorId?.location?.coordinates
+  if (userLoc && Array.isArray(coords) && coords.length === 2) {
+    distanceKm = haversineKm(userLoc.lat, userLoc.lng, coords[1], coords[0])
+  }
+
   const reviews = await Review.find({ serviceId: service._id })
     .populate('userId', 'name')
     .sort('-createdAt')
-  res.json({ success: true, service, reviews })
+
+  res.json({
+    success: true,
+    service: {
+      ...service.toObject(),
+      distanceKm,
+      distanceLabel: formatDistanceKm(distanceKm),
+    },
+    reviews,
+  })
 })
 
 // @desc Create a booking

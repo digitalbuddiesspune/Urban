@@ -9,9 +9,11 @@ import EmptyState from '../components/ui/EmptyState.jsx'
 import Pagination from '../components/ui/Pagination.jsx'
 import { getCategoryImage } from '../utils/categoryImages.js'
 import { useTheme } from '../context/ThemeContext.jsx'
+import { useLocation } from '../context/LocationContext.jsx'
 
 const Services = () => {
   const { theme } = useTheme()
+  const { location, status: locStatus, requestLocation } = useLocation()
   const [searchParams, setSearchParams] = useSearchParams()
   const [categories, setCategories] = useState([])
   const [categoriesLoading, setCategoriesLoading] = useState(true)
@@ -58,13 +60,18 @@ const Services = () => {
     try {
       const params = new URLSearchParams()
       Object.entries(filters).forEach(([k, v]) => v && params.append(k, v))
+      if (location?.lat != null && location?.lng != null) {
+        params.set('lat', String(location.lat))
+        params.set('lng', String(location.lng))
+        if (!filters.sort) params.set('sort', 'nearest')
+      }
       const { data } = await api.get(`/user/services?${params.toString()}`)
       setServices(data.services)
       setPages(data.pages)
     } finally {
       setServicesLoading(false)
     }
-  }, [filters])
+  }, [filters, location])
 
   useEffect(() => {
     if (browsingAll) return
@@ -188,7 +195,8 @@ const Services = () => {
           <div>
             <label className="mb-1 block text-sm font-medium text-slate-700">Sort by</label>
             <select className="input" value={filters.sort} onChange={(e) => update('sort', e.target.value)}>
-              <option value="">Newest</option>
+              <option value="">Nearest first</option>
+              <option value="newest">Newest</option>
               <option value="price_asc">Price: Low to High</option>
               <option value="price_desc">Price: High to Low</option>
               <option value="rating">Top rated</option>
@@ -218,7 +226,7 @@ const Services = () => {
         <div>
           <h1 className="text-xl font-bold text-slate-900 sm:text-2xl">{pageTitle}</h1>
           <p className="mt-0.5 text-sm text-slate-500">
-            {browsingAll ? 'Browse all home services we offer' : 'Available providers for this service'}
+            {browsingAll ? 'Browse all home services we offer' : location ? 'Nearest providers for this service' : 'Available providers for this service'}
           </p>
         </div>
         <button
@@ -273,7 +281,7 @@ const Services = () => {
           <div className="mb-5 hidden lg:block">
             <h1 className="text-2xl font-bold text-slate-900">{pageTitle}</h1>
             <p className="mt-1 text-sm text-slate-500">
-              {browsingAll ? 'Browse all home services we offer' : 'Available providers for this service'}
+              {browsingAll ? 'Browse all home services we offer' : location ? 'Nearest providers for this service' : 'Available providers for this service'}
             </p>
           </div>
 
@@ -310,6 +318,22 @@ const Services = () => {
                 </div>
               )}
 
+              {!location && (
+                <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
+                  <p className="text-sm text-amber-900">
+                    Enable location to see <strong>nearest vendors</strong> first.
+                  </p>
+                  <button type="button" onClick={requestLocation} className="btn-primary px-4 py-2 text-sm" disabled={locStatus === 'loading'}>
+                    {locStatus === 'loading' ? 'Locating…' : 'Use my location'}
+                  </button>
+                </div>
+              )}
+
+              {location && services.length > 0 && services[0]?.distanceLabel && (
+                <p className="mb-4 text-sm text-slate-500">
+                  Sorted by distance — nearest first ({services[0].distanceLabel} away)
+                </p>
+              )}
               {services.length === 0 ? (
                 <EmptyState
                   title="Providers coming soon"
@@ -322,8 +346,8 @@ const Services = () => {
                     <p className="mb-4 text-sm text-slate-500">Showing provider listings for {selectedCategory?.name}</p>
                   )}
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 md:grid-cols-2 xl:grid-cols-3">
-                    {services.map((s) => (
-                      <ServiceCard key={s._id} service={s} />
+                    {services.map((s, idx) => (
+                      <ServiceCard key={s._id} service={s} isNearest={idx === 0 && s.distanceKm != null} />
                     ))}
                   </div>
                   <Pagination page={filters.page} pages={pages} onChange={(p) => setFilters((f) => ({ ...f, page: p }))} />
