@@ -14,13 +14,13 @@ const TILES = [
     key: 'women',
     label: "Women's Salon & Spa",
     categoryNames: ["Women's Salon"],
-    emoji: '🧖‍♀️',
+    image: '/hero/women-salon.webp',
   },
   {
     key: 'men',
     label: "Men's Salon & Massage",
     categoryNames: ["Men's Salon"],
-    emoji: '🧔',
+    image: '/hero/men-salon.webp',
   },
   {
     key: 'cleaning',
@@ -109,7 +109,7 @@ const ServiceTile = ({ tile, to }) => (
         <img
           src={tile.image}
           alt=""
-          className="h-full w-full object-cover object-top"
+          className="h-full w-full object-contain object-center"
           loading="lazy"
         />
       ) : (
