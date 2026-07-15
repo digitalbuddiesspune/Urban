@@ -4,13 +4,6 @@ import { useTheme } from '../../context/ThemeContext.jsx'
 
 const TILES = [
   {
-    key: 'instant',
-    label: 'InstaHelp',
-    categoryNames: ['Instant Help'],
-    image: '/hero/instahelp.webp',
-    href: '/services',
-  },
-  {
     key: 'women',
     label: "Women's Salon & Spa",
     categoryNames: ["Women's Salon"],
@@ -29,22 +22,29 @@ const TILES = [
     image: '/hero/cleaning-pest.webp',
   },
   {
-    key: 'paint',
-    label: 'Painting & Waterproofing',
-    categoryNames: ['Home Improvement'],
-    image: '/hero/painting.webp',
-  },
-  {
     key: 'ac',
     label: 'AC & Appliance Repair',
     categoryNames: ['Appliance Repair'],
     image: '/hero/ac-appliance.webp',
   },
   {
+    key: 'paint',
+    label: 'Painting & Waterproofing',
+    categoryNames: ['Home Improvement'],
+    image: '/hero/painting.webp',
+  },
+  {
     key: 'home',
     label: 'Electrician, Plumber & Carpenter',
     categoryNames: ['Home Services'],
     image: '/hero/home-services.webp',
+  },
+  {
+    key: 'instant',
+    label: 'InstaHelp',
+    categoryNames: ['Instant Help'],
+    image: '/hero/instahelp.webp',
+    href: '/services',
   },
   {
     key: 'all',
