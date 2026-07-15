@@ -1,28 +1,34 @@
 import { useEffect, useState } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, useLocation, Link } from 'react-router-dom'
 import toast from 'react-hot-toast'
-import { Calendar, Clock, MapPin, Plus } from 'lucide-react'
+import { MapPin, Plus, ChevronLeft } from 'lucide-react'
 import api from '../api/axios.js'
 import { PageLoader } from '../components/ui/Loader.jsx'
 import Spinner from '../components/ui/Loader.jsx'
-import { formatCurrency } from '../utils/helpers.js'
+import { formatCurrency, formatDate } from '../utils/helpers.js'
+import { useCart } from '../context/CartContext.jsx'
+import ScheduleServiceModal from '../components/ScheduleServiceModal.jsx'
 
-const TIME_SLOTS = ['09:00', '10:00', '11:00', '12:00', '14:00', '15:00', '16:00', '17:00', '18:00']
 const emptyAddr = { label: 'Home', line1: '', line2: '', city: '', state: '', pincode: '' }
+const FALLBACK = 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=600'
 
 const Booking = () => {
   const { id } = useParams()
   const navigate = useNavigate()
+  const location = useLocation()
+  const fromCart = location.state?.fromCart || false
+  const bookAll = Boolean(location.state?.bookAll)
+  const { items, removeItem, isInCart, total: cartTotal, clearCart, updateSchedule } = useCart()
+  const singleCartItem = items.find((i) => String(i.serviceId) === String(id))
+
   const [service, setService] = useState(null)
   const [addresses, setAddresses] = useState([])
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
+  const [editingItem, setEditingItem] = useState(null)
 
   const [form, setForm] = useState({
-    bookingDate: '',
-    bookingTime: '',
     paymentMethod: 'cash',
-    userNote: '',
   })
   const [selectedAddr, setSelectedAddr] = useState(null)
   const [newAddr, setNewAddr] = useState(emptyAddr)
@@ -36,6 +42,7 @@ const Booking = () => {
         if (a.data.addresses.length > 0) setSelectedAddr(a.data.addresses[0]._id)
         else setUseNew(true)
       })
+      .catch(() => toast.error('Could not load booking details'))
       .finally(() => setLoading(false))
   }, [id])
 
@@ -44,9 +51,43 @@ const Booking = () => {
 
   const price = service.discountPrice > 0 ? service.discountPrice : service.price
 
+  const summaryItems = bookAll && items.length > 0
+    ? items
+    : [
+        singleCartItem || {
+          serviceId: service._id,
+          title: service.title,
+          image: service.images?.[0] || '',
+          price,
+          categoryName: service.categoryId?.name || '',
+          bookingDate: '',
+          bookingTime: '',
+        },
+      ]
+
+  const orderTotal = bookAll && items.length > 0
+    ? cartTotal
+    : singleCartItem?.price ?? price
+
   const submit = async (e) => {
     e.preventDefault()
-    if (!form.bookingDate || !form.bookingTime) return toast.error('Please choose date and time')
+
+    const servicesToBook =
+      bookAll && items.length > 0
+        ? items
+        : [
+            {
+              serviceId: id,
+              title: service.title,
+              bookingDate: singleCartItem?.bookingDate || '',
+              bookingTime: singleCartItem?.bookingTime || '',
+            },
+          ]
+
+    const missingSchedule = servicesToBook.find((item) => !item.bookingDate || !item.bookingTime)
+    if (missingSchedule) {
+      return toast.error('Please select date & time from Add popup before booking')
+    }
 
     let address
     if (useNew) {
@@ -64,15 +105,29 @@ const Booking = () => {
       if (useNew) {
         await api.post('/user/addresses', newAddr)
       }
-      await api.post('/user/bookings', {
-        serviceId: id,
-        bookingDate: form.bookingDate,
-        bookingTime: form.bookingTime,
-        address,
-        paymentMethod: form.paymentMethod,
-        userNote: form.userNote,
-      })
-      toast.success('Booking confirmed!')
+
+      for (const item of servicesToBook) {
+        await api.post('/user/bookings', {
+          serviceId: item.serviceId,
+          bookingDate: item.bookingDate,
+          bookingTime: item.bookingTime,
+          address,
+          paymentMethod: form.paymentMethod,
+          userNote: '',
+        })
+      }
+
+      if (bookAll && items.length > 0) {
+        clearCart()
+      } else if (isInCart(id)) {
+        removeItem(id)
+      }
+
+      toast.success(
+        servicesToBook.length > 1
+          ? `${servicesToBook.length} bookings confirmed!`
+          : 'Booking confirmed!'
+      )
       navigate('/bookings')
     } catch (err) {
       toast.error(err.message)
@@ -81,22 +136,94 @@ const Booking = () => {
     }
   }
 
+  const paymentOptions = (
+    <div className="mt-4 grid grid-cols-2 gap-2">
+      {[
+        { id: 'cash', label: 'Cash on service' },
+        { id: 'online', label: 'Pay online' },
+      ].map((m) => (
+        <button
+          key={m.id}
+          type="button"
+          onClick={() => setForm({ ...form, paymentMethod: m.id })}
+          className={`min-h-[42px] rounded-xl border px-2 py-2 text-xs font-semibold sm:text-sm ${
+            form.paymentMethod === m.id
+              ? 'border-slate-900 bg-slate-900 text-white'
+              : 'border-slate-200 text-slate-700 hover:border-slate-300'
+          }`}
+        >
+          {m.label}
+        </button>
+      ))}
+    </div>
+  )
+
   const orderSummary = (
     <div className="card p-5">
       <h2 className="font-semibold text-slate-800">Order summary</h2>
-      <div className="mt-4 flex justify-between gap-4 text-sm text-slate-600">
-        <span className="min-w-0">{service.title}</span>
-        <span className="shrink-0">{formatCurrency(price)}</span>
-      </div>
-      <div className="mt-2 flex justify-between text-sm text-slate-600">
+      <ul className="mt-4 space-y-4">
+        {summaryItems.map((item) => (
+          <li key={item.serviceId} className="flex gap-3">
+            <div className="h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-slate-100">
+              <img
+                src={item.image || FALLBACK}
+                alt={item.title}
+                className="h-full w-full object-cover"
+              />
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-slate-900">{item.title}</p>
+                  {item.categoryName && (
+                    <p className="text-xs text-slate-500">{item.categoryName}</p>
+                  )}
+                </div>
+                <p className="shrink-0 text-sm font-semibold text-slate-900">
+                  {formatCurrency(item.price)}
+                </p>
+              </div>
+              <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
+                {(item.bookingDate || item.bookingTime) ? (
+                  <span className="font-medium text-slate-600">
+                    {[item.bookingDate ? formatDate(item.bookingDate) : null, item.bookingTime]
+                      .filter(Boolean)
+                      .join(' · ')}
+                  </span>
+                ) : (
+                  <span className="font-medium text-amber-600">Date & time not selected</span>
+                )}
+                {items.some((i) => String(i.serviceId) === String(item.serviceId)) && (
+                  <>
+                    <span className="text-slate-300">·</span>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setEditingItem(
+                          items.find((i) => String(i.serviceId) === String(item.serviceId)) || item
+                        )
+                      }
+                      className="font-semibold text-slate-800 underline-offset-2 hover:underline"
+                    >
+                      {item.bookingDate || item.bookingTime ? 'Change date & time' : 'Select date & time'}
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
+          </li>
+        ))}
+      </ul>
+      <div className="mt-4 flex justify-between text-sm text-slate-600">
         <span>Taxes & fees</span>
         <span>Included</span>
       </div>
       <div className="my-4 border-t border-slate-100" />
       <div className="flex justify-between font-bold text-slate-900">
         <span>Total</span>
-        <span>{formatCurrency(price)}</span>
+        <span>{formatCurrency(orderTotal)}</span>
       </div>
+      {paymentOptions}
       <button
         type="submit"
         disabled={submitting}
@@ -108,44 +235,31 @@ const Booking = () => {
   )
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-6 pb-28 sm:px-6 sm:py-8 lg:pb-8">
+    <div className="mx-auto max-w-5xl px-4 py-6 pb-28 sm:px-6 sm:py-8 lg:pb-8">
+      {fromCart ? (
+        <Link
+          to="/cart"
+          className="mb-4 inline-flex items-center gap-1 text-sm font-medium text-slate-600 hover:text-slate-900"
+        >
+          <ChevronLeft className="h-4 w-4" /> Back to cart
+        </Link>
+      ) : (
+        <button
+          type="button"
+          onClick={() => navigate(-1)}
+          className="mb-4 inline-flex items-center gap-1 text-sm font-medium text-slate-600 hover:text-slate-900"
+        >
+          <ChevronLeft className="h-4 w-4" /> Back
+        </button>
+      )}
+
       <h1 className="text-xl font-bold text-slate-900 sm:text-2xl">Confirm your booking</h1>
-      <p className="text-sm text-slate-500">{service.title}</p>
+      {bookAll && items.length > 1 && (
+        <p className="mt-0.5 text-sm text-slate-500">{items.length} services from your cart</p>
+      )}
 
-      <form onSubmit={submit} className="mt-5 grid grid-cols-1 gap-5 sm:mt-6 sm:gap-6 lg:grid-cols-[1fr_320px]">
+      <form onSubmit={submit} className="mt-5 grid items-start gap-6 lg:mt-6 lg:grid-cols-[1fr_340px]">
         <div className="order-2 space-y-5 sm:space-y-6 lg:order-1">
-          <div className="card p-4 sm:p-5">
-            <h2 className="flex items-center gap-2 font-semibold text-slate-800">
-              <Calendar className="h-4 w-4" /> Select date
-            </h2>
-            <input
-              type="date"
-              min={new Date().toISOString().split('T')[0]}
-              className="input mt-3"
-              value={form.bookingDate}
-              onChange={(e) => setForm({ ...form, bookingDate: e.target.value })}
-            />
-            <h2 className="mt-5 flex items-center gap-2 font-semibold text-slate-800">
-              <Clock className="h-4 w-4" /> Select time
-            </h2>
-            <div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-5">
-              {TIME_SLOTS.map((t) => (
-                <button
-                  key={t}
-                  type="button"
-                  onClick={() => setForm({ ...form, bookingTime: t })}
-                  className={`min-h-[44px] rounded-lg border py-2 text-sm font-medium ${
-                    form.bookingTime === t
-                      ? 'border-violet-500 bg-violet-50 text-violet-700'
-                      : 'border-slate-200 text-slate-600 hover:border-violet-300'
-                  }`}
-                >
-                  {t}
-                </button>
-              ))}
-            </div>
-          </div>
-
           <div className="card p-4 sm:p-5">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <h2 className="flex items-center gap-2 font-semibold text-slate-800">
@@ -197,43 +311,16 @@ const Booking = () => {
               </div>
             )}
           </div>
-
-          <div className="card p-4 sm:p-5">
-            <h2 className="font-semibold text-slate-800">Payment method</h2>
-            <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:gap-3">
-              {['cash', 'online'].map((m) => (
-                <button
-                  key={m}
-                  type="button"
-                  onClick={() => setForm({ ...form, paymentMethod: m })}
-                  className={`min-h-[44px] flex-1 rounded-xl border py-2.5 text-sm font-medium capitalize ${
-                    form.paymentMethod === m
-                      ? 'border-violet-500 bg-violet-50 text-violet-700'
-                      : 'border-slate-200 text-slate-600'
-                  }`}
-                >
-                  {m === 'cash' ? 'Cash on service' : 'Pay online'}
-                </button>
-              ))}
-            </div>
-            <textarea
-              className="input mt-4"
-              rows={2}
-              placeholder="Add a note for the professional (optional)"
-              value={form.userNote}
-              onChange={(e) => setForm({ ...form, userNote: e.target.value })}
-            />
-          </div>
         </div>
 
-        <div className="order-1 lg:sticky lg:top-24 lg:order-2 lg:h-fit">{orderSummary}</div>
+        <div className="order-1 lg:sticky lg:top-24 lg:order-2">{orderSummary}</div>
       </form>
 
       <div className="safe-bottom fixed bottom-0 left-0 right-0 z-30 border-t border-slate-200 bg-white/95 p-4 backdrop-blur lg:hidden">
-        <div className="mx-auto flex max-w-4xl items-center gap-4">
+        <div className="mx-auto flex max-w-5xl items-center gap-4">
           <div className="min-w-0 shrink-0">
             <p className="text-xs text-slate-500">Total</p>
-            <p className="text-lg font-bold text-slate-900">{formatCurrency(price)}</p>
+            <p className="text-lg font-bold text-slate-900">{formatCurrency(orderTotal)}</p>
           </div>
           <button
             type="button"
@@ -245,6 +332,39 @@ const Booking = () => {
           </button>
         </div>
       </div>
+
+      <ScheduleServiceModal
+        key={editingItem?.serviceId || 'closed'}
+        service={
+          editingItem
+            ? {
+                _id: editingItem.serviceId,
+                title: editingItem.title,
+                images: [editingItem.image],
+                price: editingItem.price,
+                discountPrice: editingItem.discountPrice,
+              }
+            : null
+        }
+        open={Boolean(editingItem)}
+        initialDate={
+          items.find((i) => String(i.serviceId) === String(editingItem?.serviceId))?.bookingDate ||
+          editingItem?.bookingDate ||
+          ''
+        }
+        initialTime={
+          items.find((i) => String(i.serviceId) === String(editingItem?.serviceId))?.bookingTime ||
+          editingItem?.bookingTime ||
+          ''
+        }
+        confirmLabel="Update"
+        onClose={() => setEditingItem(null)}
+        onConfirm={({ bookingDate, bookingTime }) => {
+          updateSchedule(editingItem.serviceId, { bookingDate, bookingTime })
+          toast.success('Date & time updated')
+          setEditingItem(null)
+        }}
+      />
     </div>
   )
 }

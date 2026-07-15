@@ -20,7 +20,12 @@ const Login = () => {
     try {
       await login(form.email, form.password)
       toast.success('Welcome back!')
-      navigate(location.state?.from?.pathname || '/')
+      const from = location.state?.from
+      if (from?.pathname) {
+        navigate(`${from.pathname}${from.search || ''}`, { state: from.state, replace: true })
+      } else {
+        navigate('/')
+      }
     } catch (err) {
       toast.error(err.message)
     } finally {
