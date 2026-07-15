@@ -33,7 +33,7 @@ const TILES = [
     key: 'paint',
     label: 'Painting & Waterproofing',
     categoryNames: ['Home Improvement'],
-    emoji: '🖌️',
+    image: '/hero/painting.webp',
   },
   {
     key: 'ac',
