@@ -157,7 +157,7 @@ const Cart = () => {
                 <button
                   type="button"
                   onClick={() => setEditingItem(item)}
-                  className="font-semibold text-slate-800 underline-offset-2 hover:underline"
+                  className="rounded-md bg-sky-50 px-1.5 py-0.5 font-semibold text-sky-700 ring-1 ring-sky-100 hover:bg-sky-100"
                 >
                   {item.bookingDate || item.bookingTime ? 'Change date & time' : 'Select date & time'}
                 </button>

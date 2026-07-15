@@ -203,7 +203,7 @@ const Booking = () => {
                           items.find((i) => String(i.serviceId) === String(item.serviceId)) || item
                         )
                       }
-                      className="font-semibold text-slate-800 underline-offset-2 hover:underline"
+                      className="rounded-md bg-sky-50 px-1.5 py-0.5 font-semibold text-sky-700 ring-1 ring-sky-100 hover:bg-sky-100"
                     >
                       {item.bookingDate || item.bookingTime ? 'Change date & time' : 'Select date & time'}
                     </button>
@@ -219,15 +219,15 @@ const Booking = () => {
         <span>Included</span>
       </div>
       <div className="my-4 border-t border-slate-100" />
-      <div className="flex justify-between font-bold text-slate-900">
+      {paymentOptions}
+      <div className="mt-4 flex justify-between font-bold text-slate-900">
         <span>Total</span>
         <span>{formatCurrency(orderTotal)}</span>
       </div>
-      {paymentOptions}
       <button
         type="submit"
         disabled={submitting}
-        className="btn-primary mt-5 hidden w-full items-center justify-center gap-2 py-3 lg:flex"
+        className="btn-primary mt-4 flex w-full items-center justify-center gap-2 py-3"
       >
         {submitting && <Spinner className="h-4 w-4" />} Confirm booking
       </button>
@@ -235,7 +235,7 @@ const Booking = () => {
   )
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-6 pb-28 sm:px-6 sm:py-8 lg:pb-8">
+    <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6 sm:py-8">
       {fromCart ? (
         <Link
           to="/cart"
@@ -315,23 +315,6 @@ const Booking = () => {
 
         <div className="order-1 lg:sticky lg:top-24 lg:order-2">{orderSummary}</div>
       </form>
-
-      <div className="safe-bottom fixed bottom-0 left-0 right-0 z-30 border-t border-slate-200 bg-white/95 p-4 backdrop-blur lg:hidden">
-        <div className="mx-auto flex max-w-5xl items-center gap-4">
-          <div className="min-w-0 shrink-0">
-            <p className="text-xs text-slate-500">Total</p>
-            <p className="text-lg font-bold text-slate-900">{formatCurrency(orderTotal)}</p>
-          </div>
-          <button
-            type="button"
-            disabled={submitting}
-            onClick={submit}
-            className="btn-primary flex min-h-[44px] flex-1 items-center justify-center gap-2 py-3"
-          >
-            {submitting && <Spinner className="h-4 w-4" />} Confirm booking
-          </button>
-        </div>
-      </div>
 
       <ScheduleServiceModal
         key={editingItem?.serviceId || 'closed'}
