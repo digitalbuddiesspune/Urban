@@ -44,7 +44,7 @@ const TILES = [
     key: 'home',
     label: 'Electrician, Plumber & Carpenter',
     categoryNames: ['Home Services'],
-    emoji: '🔧',
+    image: '/hero/home-services.webp',
   },
   {
     key: 'all',
@@ -93,8 +93,8 @@ const resolveHref = (tile, categories = []) => {
 }
 
 const ServiceTile = ({ tile, to }) => (
-  <Link to={to} className="group flex flex-col items-center text-center">
-    <div className="relative flex h-[72px] w-full items-center justify-center overflow-hidden rounded-xl bg-slate-100 transition group-hover:bg-slate-200/80 sm:h-[80px]">
+  <Link to={to} className="flex flex-col items-center text-center">
+    <div className="relative flex h-[72px] w-full items-center justify-center overflow-hidden rounded-xl bg-slate-100 sm:h-[80px]">
       {tile.badge && (
         <span className="absolute inset-x-0 bottom-0 z-10 whitespace-nowrap bg-emerald-500 px-1 py-0.5 text-center text-[10px] font-semibold leading-tight text-white">
           {tile.badge}
