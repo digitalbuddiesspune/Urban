@@ -71,21 +71,21 @@ const PRODUCTS = [
 ]
 
 const COLLAGE = {
-  salon: {
-    src: 'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=700&q=80',
-    alt: 'Salon at home',
+  pro: {
+    src: '/hero/pro.webp',
+    alt: 'UrbanEase professional',
   },
-  massage: {
-    src: 'https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=700&q=80',
-    alt: 'Massage therapy',
+  pest: {
+    src: '/hero/pest.webp',
+    alt: 'Pest control service',
   },
-  chimney: {
-    src: 'https://images.unsplash.com/photo-1556911220-bff31c812dba?w=700&q=80',
-    alt: 'Chimney repair',
+  cleaning: {
+    src: '/hero/cleaning.webp',
+    alt: 'Home cleaning service',
   },
   ac: {
-    src: 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=700&q=80',
-    alt: 'AC service',
+    src: '/hero/ac.webp',
+    alt: 'AC repair service',
   },
 }
 
@@ -164,18 +164,18 @@ const Hero = ({ categories = [] }) => {
         <div className="hidden h-[480px] grid-cols-2 gap-3 lg:grid xl:h-[520px] xl:gap-4">
           <div className="flex min-h-0 flex-col gap-3 xl:gap-4">
             <div className="min-h-0 flex-[1.35] overflow-hidden rounded-2xl bg-slate-100">
-              <img src={COLLAGE.salon.src} alt={COLLAGE.salon.alt} className="h-full w-full object-cover" loading="eager" />
+              <img src={COLLAGE.pro.src} alt={COLLAGE.pro.alt} className="h-full w-full object-cover" loading="eager" />
             </div>
             <div className="min-h-0 flex-1 overflow-hidden rounded-2xl bg-slate-100">
-              <img src={COLLAGE.chimney.src} alt={COLLAGE.chimney.alt} className="h-full w-full object-cover" loading="lazy" />
+              <img src={COLLAGE.pest.src} alt={COLLAGE.pest.alt} className="h-full w-full object-cover" loading="lazy" />
             </div>
           </div>
           <div className="flex min-h-0 flex-col gap-3 xl:gap-4">
             <div className="min-h-0 flex-1 overflow-hidden rounded-2xl bg-slate-100">
-              <img src={COLLAGE.massage.src} alt={COLLAGE.massage.alt} className="h-full w-full object-cover" loading="eager" />
+              <img src={COLLAGE.cleaning.src} alt={COLLAGE.cleaning.alt} className="h-full w-full object-cover" loading="eager" />
             </div>
             <div className="min-h-0 flex-[1.35] overflow-hidden rounded-2xl bg-slate-100">
-              <img src={COLLAGE.ac.src} alt={COLLAGE.ac.alt} className="h-full w-full object-cover" loading="lazy" />
+              <img src={COLLAGE.ac.src} alt={COLLAGE.ac.alt} className="h-full w-full object-cover object-center" loading="lazy" />
             </div>
           </div>
         </div>
