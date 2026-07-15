@@ -39,7 +39,7 @@ const TILES = [
     key: 'ac',
     label: 'AC & Appliance Repair',
     categoryNames: ['Appliance Repair'],
-    emoji: '❄️',
+    image: '/hero/ac-appliance.webp',
     badge: '25 mins',
   },
   {
