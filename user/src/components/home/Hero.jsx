@@ -39,14 +39,12 @@ const TILES = [
     label: 'AC & Appliance Repair',
     categoryNames: ['Appliance Repair'],
     image: '/hero/ac-appliance.webp',
-    badge: '25 mins',
   },
   {
     key: 'home',
     label: 'Electrician, Plumber & Carpenter',
     categoryNames: ['Home Services'],
     emoji: '🔧',
-    badge: '25 mins',
   },
   {
     key: 'all',
