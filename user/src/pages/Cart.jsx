@@ -67,6 +67,35 @@ const Cart = () => {
     }
   }
 
+  const hasSchedule = (item) => Boolean(item?.bookingDate && item?.bookingTime)
+  const missingScheduleItem = items.find((item) => !hasSchedule(item))
+
+  const requireSchedule = (item, { bookAll = false } = {}) => {
+    if (bookAll) {
+      const missing = items.find((i) => !hasSchedule(i))
+      if (!missing) return true
+      toast.error(`Please select date & time for "${missing.title}"`)
+      setEditingItem(missing)
+      return false
+    }
+    if (hasSchedule(item)) return true
+    toast.error('Please select date & time before booking')
+    setEditingItem(item)
+    return false
+  }
+
+  const handleBookOne = (e, item) => {
+    if (!requireSchedule(item)) {
+      e.preventDefault()
+    }
+  }
+
+  const handleBookAll = (e) => {
+    if (!requireSchedule(null, { bookAll: true })) {
+      e.preventDefault()
+    }
+  }
+
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-10">
       <div className="flex items-center justify-between gap-3">
@@ -84,6 +113,12 @@ const Cart = () => {
           Clear all
         </button>
       </div>
+
+      {missingScheduleItem && (
+        <p className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
+          Select date & time for all services before booking.
+        </p>
+      )}
 
       <ul className="mt-6 space-y-3">
         {items.map((item) => (
@@ -135,7 +170,7 @@ const Cart = () => {
               </div>
 
               <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
-                {(item.bookingDate || item.bookingTime) ? (
+                {hasSchedule(item) ? (
                   <span className="inline-flex flex-wrap items-center gap-x-2 gap-y-0.5 font-medium text-slate-600">
                     {item.bookingDate && (
                       <span className="inline-flex items-center gap-1">
@@ -159,14 +194,17 @@ const Cart = () => {
                   onClick={() => setEditingItem(item)}
                   className="rounded-md bg-sky-50 px-1.5 py-0.5 font-semibold text-sky-700 ring-1 ring-sky-100 hover:bg-sky-100"
                 >
-                  {item.bookingDate || item.bookingTime ? 'Change date & time' : 'Select date & time'}
+                  {hasSchedule(item) ? 'Change date & time' : 'Select date & time'}
                 </button>
               </div>
 
               <Link
                 to={`/book/${item.serviceId}`}
                 state={{ fromCart: true, bookAll: false }}
-                className="mt-2.5 inline-flex text-sm font-semibold text-violet-700 hover:underline"
+                onClick={(e) => handleBookOne(e, item)}
+                className={`mt-2.5 inline-flex text-sm font-semibold hover:underline ${
+                  hasSchedule(item) ? 'text-violet-700' : 'cursor-not-allowed text-slate-400 no-underline'
+                }`}
               >
                 Book this service →
               </Link>
@@ -184,7 +222,11 @@ const Cart = () => {
           <Link
             to={`/book/${items[0].serviceId}`}
             state={{ fromCart: true, bookAll: true }}
-            className="btn-primary rounded-xl px-5 py-2.5 text-sm font-semibold"
+            onClick={handleBookAll}
+            className={`btn-primary rounded-xl px-5 py-2.5 text-sm font-semibold ${
+              missingScheduleItem ? 'pointer-events-auto opacity-60' : ''
+            }`}
+            aria-disabled={Boolean(missingScheduleItem)}
           >
             Proceed to book
           </Link>

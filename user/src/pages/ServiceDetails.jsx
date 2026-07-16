@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
+import toast from 'react-hot-toast'
 import { Star, Clock, MapPin, ChevronLeft, BadgeCheck } from 'lucide-react'
 import api from '../api/axios.js'
 import { PageLoader } from '../components/ui/Loader.jsx'
@@ -7,6 +8,7 @@ import StarRating from '../components/ui/StarRating.jsx'
 import { formatCurrency, formatDate } from '../utils/helpers.js'
 import { useAuth } from '../context/AuthContext.jsx'
 import { useLocation } from '../context/LocationContext.jsx'
+import { useCart } from '../context/CartContext.jsx'
 
 const FALLBACK = 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=900'
 
@@ -15,6 +17,7 @@ const ServiceDetails = () => {
   const navigate = useNavigate()
   const { user } = useAuth()
   const { location } = useLocation()
+  const { items, isInCart } = useCart()
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
 
@@ -39,7 +42,13 @@ const ServiceDetails = () => {
 
   const handleBook = () => {
     if (!user) return navigate('/login', { state: { from: { pathname: `/services/${id}` } } })
-    navigate(`/book/${id}`)
+    const cartItem = items.find((i) => String(i.serviceId) === String(id))
+    if (!cartItem || !cartItem.bookingDate || !cartItem.bookingTime) {
+      toast.error('Please add this service to cart and select date & time first')
+      navigate(isInCart(id) ? '/cart' : '/')
+      return
+    }
+    navigate(`/book/${id}`, { state: { fromCart: true, bookAll: false } })
   }
 
   return (

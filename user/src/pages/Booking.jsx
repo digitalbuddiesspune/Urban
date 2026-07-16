@@ -69,6 +69,10 @@ const Booking = () => {
     ? cartTotal
     : singleCartItem?.price ?? price
 
+  const hasSchedule = (item) => Boolean(item?.bookingDate && item?.bookingTime)
+  const scheduleReady = summaryItems.every(hasSchedule)
+  const missingScheduleItem = summaryItems.find((item) => !hasSchedule(item))
+
   const submit = async (e) => {
     e.preventDefault()
 
@@ -86,7 +90,17 @@ const Booking = () => {
 
     const missingSchedule = servicesToBook.find((item) => !item.bookingDate || !item.bookingTime)
     if (missingSchedule) {
-      return toast.error('Please select date & time from Add popup before booking')
+      const cartItem =
+        items.find((i) => String(i.serviceId) === String(missingSchedule.serviceId)) ||
+        missingScheduleItem
+      if (cartItem && items.some((i) => String(i.serviceId) === String(cartItem.serviceId))) {
+        setEditingItem(cartItem)
+      }
+      return toast.error(
+        missingSchedule.title
+          ? `Please select date & time for "${missingSchedule.title}"`
+          : 'Please select date & time before booking'
+      )
     }
 
     let address
@@ -220,14 +234,19 @@ const Booking = () => {
       </div>
       <div className="my-4 border-t border-slate-100" />
       {paymentOptions}
+      {!scheduleReady && (
+        <p className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+          Select date & time before confirming booking.
+        </p>
+      )}
       <div className="mt-4 flex justify-between font-bold text-slate-900">
         <span>Total</span>
         <span>{formatCurrency(orderTotal)}</span>
       </div>
       <button
         type="submit"
-        disabled={submitting}
-        className="btn-primary mt-4 flex w-full items-center justify-center gap-2 py-3"
+        disabled={submitting || !scheduleReady}
+        className="btn-primary mt-4 flex w-full items-center justify-center gap-2 py-3 disabled:cursor-not-allowed disabled:opacity-60"
       >
         {submitting && <Spinner className="h-4 w-4" />} Confirm booking
       </button>
