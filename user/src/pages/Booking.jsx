@@ -18,7 +18,7 @@ const Booking = () => {
   const location = useLocation()
   const fromCart = location.state?.fromCart || false
   const bookAll = Boolean(location.state?.bookAll)
-  const { items, removeItem, isInCart, total: cartTotal, clearCart, updateSchedule } = useCart()
+  const { items, removeItem, isInCart, total: cartTotal, clearCart, updateSchedule, addItem } = useCart()
   const singleCartItem = items.find((i) => String(i.serviceId) === String(id))
 
   const [service, setService] = useState(null)
@@ -26,6 +26,7 @@ const Booking = () => {
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [editingItem, setEditingItem] = useState(null)
+  const [scheduleOverrides, setScheduleOverrides] = useState({})
 
   const [form, setForm] = useState({
     paymentMethod: 'cash',
@@ -51,19 +52,33 @@ const Booking = () => {
 
   const price = service.discountPrice > 0 ? service.discountPrice : service.price
 
-  const summaryItems = bookAll && items.length > 0
-    ? items
-    : [
-        singleCartItem || {
-          serviceId: service._id,
-          title: service.title,
-          image: service.images?.[0] || '',
-          price,
-          categoryName: service.categoryId?.name || '',
-          bookingDate: '',
-          bookingTime: '',
-        },
-      ]
+  const applyScheduleOverride = (item) => {
+    const key = String(item.serviceId)
+    const override = scheduleOverrides[key]
+    if (!override) return item
+    return {
+      ...item,
+      bookingDate: override.bookingDate ?? item.bookingDate,
+      bookingTime: override.bookingTime ?? item.bookingTime,
+    }
+  }
+
+  const summaryItems = (
+    bookAll && items.length > 0
+      ? items
+      : [
+          singleCartItem || {
+            serviceId: service._id,
+            title: service.title,
+            image: service.images?.[0] || '',
+            price,
+            categoryName: service.categoryId?.name || '',
+            discountPrice: service.discountPrice || 0,
+            bookingDate: '',
+            bookingTime: '',
+          },
+        ]
+  ).map(applyScheduleOverride)
 
   const orderTotal = bookAll && items.length > 0
     ? cartTotal
@@ -78,24 +93,22 @@ const Booking = () => {
 
     const servicesToBook =
       bookAll && items.length > 0
-        ? items
+        ? items.map(applyScheduleOverride)
         : [
-            {
+            applyScheduleOverride({
               serviceId: id,
               title: service.title,
               bookingDate: singleCartItem?.bookingDate || '',
               bookingTime: singleCartItem?.bookingTime || '',
-            },
+            }),
           ]
 
     const missingSchedule = servicesToBook.find((item) => !item.bookingDate || !item.bookingTime)
     if (missingSchedule) {
-      const cartItem =
-        items.find((i) => String(i.serviceId) === String(missingSchedule.serviceId)) ||
+      const target =
+        summaryItems.find((i) => String(i.serviceId) === String(missingSchedule.serviceId)) ||
         missingScheduleItem
-      if (cartItem && items.some((i) => String(i.serviceId) === String(cartItem.serviceId))) {
-        setEditingItem(cartItem)
-      }
+      if (target) setEditingItem(target)
       return toast.error(
         missingSchedule.title
           ? `Please select date & time for "${missingSchedule.title}"`
@@ -198,7 +211,7 @@ const Booking = () => {
                 </p>
               </div>
               <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
-                {(item.bookingDate || item.bookingTime) ? (
+                {hasSchedule(item) ? (
                   <span className="font-medium text-slate-600">
                     {[item.bookingDate ? formatDate(item.bookingDate) : null, formatTime(item.bookingTime)]
                       .filter(Boolean)
@@ -207,22 +220,14 @@ const Booking = () => {
                 ) : (
                   <span className="font-medium text-amber-600">Date & time not selected</span>
                 )}
-                {items.some((i) => String(i.serviceId) === String(item.serviceId)) && (
-                  <>
-                    <span className="text-slate-300">·</span>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setEditingItem(
-                          items.find((i) => String(i.serviceId) === String(item.serviceId)) || item
-                        )
-                      }
-                      className="rounded-md bg-sky-50 px-1.5 py-0.5 font-semibold text-sky-700 ring-1 ring-sky-100 hover:bg-sky-100"
-                    >
-                      {item.bookingDate || item.bookingTime ? 'Change date & time' : 'Select date & time'}
-                    </button>
-                  </>
-                )}
+                <span className="text-slate-300">·</span>
+                <button
+                  type="button"
+                  onClick={() => setEditingItem(item)}
+                  className="rounded-md bg-sky-50 px-1.5 py-0.5 font-semibold text-sky-700 ring-1 ring-sky-100 hover:bg-sky-100"
+                >
+                  {hasSchedule(item) ? 'Change date & time' : 'Select date & time'}
+                </button>
               </div>
             </div>
           </li>
@@ -342,29 +347,54 @@ const Booking = () => {
             ? {
                 _id: editingItem.serviceId,
                 title: editingItem.title,
-                images: [editingItem.image],
-                price: editingItem.price,
-                discountPrice: editingItem.discountPrice,
+                images: [editingItem.image || service?.images?.[0]],
+                price: editingItem.price ?? price,
+                discountPrice: editingItem.discountPrice || 0,
               }
             : null
         }
         open={Boolean(editingItem)}
         initialDate={
+          scheduleOverrides[String(editingItem?.serviceId)]?.bookingDate ||
           items.find((i) => String(i.serviceId) === String(editingItem?.serviceId))?.bookingDate ||
           editingItem?.bookingDate ||
           ''
         }
         initialTime={
+          scheduleOverrides[String(editingItem?.serviceId)]?.bookingTime ||
           items.find((i) => String(i.serviceId) === String(editingItem?.serviceId))?.bookingTime ||
           editingItem?.bookingTime ||
           ''
         }
-        confirmLabel="Update"
+        confirmLabel={hasSchedule(editingItem || {}) ? 'Update' : 'Confirm'}
         onClose={() => setEditingItem(null)}
         onConfirm={async ({ bookingDate, bookingTime }) => {
+          if (!editingItem) return
+          const serviceId = editingItem.serviceId
           try {
-            await updateSchedule(editingItem.serviceId, { bookingDate, bookingTime })
-            toast.success('Date & time updated')
+            setScheduleOverrides((prev) => ({
+              ...prev,
+              [String(serviceId)]: { bookingDate, bookingTime },
+            }))
+
+            if (isInCart(serviceId)) {
+              await updateSchedule(serviceId, { bookingDate, bookingTime })
+            } else {
+              const result = await addItem(
+                {
+                  _id: serviceId,
+                  title: editingItem.title || service.title,
+                  images: [editingItem.image || service.images?.[0]].filter(Boolean),
+                  price: editingItem.price ?? service.price,
+                  discountPrice: editingItem.discountPrice || service.discountPrice || 0,
+                  categoryId: service.categoryId,
+                },
+                { bookingDate, bookingTime }
+              )
+              if (!result.ok) throw new Error(result.error || 'Could not save schedule')
+            }
+
+            toast.success('Date & time saved')
             setEditingItem(null)
           } catch (err) {
             toast.error(err.message || 'Could not update schedule')
