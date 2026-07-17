@@ -6,6 +6,7 @@ import { LocationProvider } from './context/LocationContext.jsx'
 import { CartProvider } from './context/CartContext.jsx'
 import ProtectedRoute from './routes/ProtectedRoute.jsx'
 import MainLayout from './layouts/MainLayout.jsx'
+import ScrollToTop from './components/ScrollToTop.jsx'
 import Home from './pages/Home.jsx'
 import Login from './pages/Login.jsx'
 import Register from './pages/Register.jsx'
@@ -23,6 +24,7 @@ function App() {
         <LocationProvider>
           <CartProvider>
             <BrowserRouter>
+              <ScrollToTop />
               <Toaster position="top-center" toastOptions={{ duration: 3000 }} />
               <Routes>
                 <Route element={<MainLayout />}>
