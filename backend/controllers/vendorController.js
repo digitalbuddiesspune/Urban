@@ -3,7 +3,7 @@ import Service from '../models/Service.js'
 import Booking from '../models/Booking.js'
 import Review from '../models/Review.js'
 import Vendor from '../models/Vendor.js'
-import { buildVendorAlerts } from '../utils/dashboardAlerts.js'
+import { syncVendorNotifications, markVendorNotificationsRead } from '../utils/notifications.js'
 
 // @desc Vendor dashboard
 // @route GET /api/vendor/dashboard
@@ -29,8 +29,6 @@ export const getDashboard = asyncHandler(async (req, res) => {
     .sort('-createdAt')
     .limit(5)
 
-  const alerts = await buildVendorAlerts(vendorId)
-
   res.json({
     success: true,
     stats: {
@@ -43,8 +41,21 @@ export const getDashboard = asyncHandler(async (req, res) => {
       rating: req.user.rating,
     },
     recentBookings,
-    alerts,
   })
+})
+
+// @desc Vendor notifications (last 3 days)
+// @route GET /api/vendor/notifications
+export const getNotifications = asyncHandler(async (req, res) => {
+  const { notifications, unreadCount } = await syncVendorNotifications(req.user._id)
+  res.json({ success: true, notifications, unreadCount })
+})
+
+// @desc Mark all vendor notifications as read
+// @route PUT /api/vendor/notifications/read
+export const markNotificationsRead = asyncHandler(async (req, res) => {
+  const { notifications, unreadCount } = await markVendorNotificationsRead(req.user._id)
+  res.json({ success: true, notifications, unreadCount })
 })
 
 // @desc Add service

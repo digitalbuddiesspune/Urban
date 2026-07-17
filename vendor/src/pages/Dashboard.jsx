@@ -5,7 +5,6 @@ import { PageLoader } from '../components/ui/Loader.jsx'
 import StatCard from '../components/StatCard.jsx'
 import StatusBadge from '../components/ui/StatusBadge.jsx'
 import EmptyState from '../components/ui/EmptyState.jsx'
-import AlertsPanel from '../components/AlertsPanel.jsx'
 import { formatCurrency, formatDate } from '../utils/helpers.js'
 
 const Dashboard = () => {
@@ -16,21 +15,27 @@ const Dashboard = () => {
     api
       .get('/vendor/dashboard')
       .then((r) => setData(r.data))
+      .catch(() => {})
       .finally(() => setLoading(false))
   }, [])
 
   if (loading) return <PageLoader />
 
-  const { stats, recentBookings, alerts } = data
+  if (!data) {
+    return (
+      <div className="card p-8 text-center">
+        <p className="font-semibold text-slate-900">Could not load dashboard</p>
+        <p className="mt-2 text-sm text-slate-500">Please try again later.</p>
+      </div>
+    )
+  }
+
+  const { stats, recentBookings } = data
 
   return (
     <div>
       <h1 className="text-2xl font-bold text-slate-900">Dashboard</h1>
       <p className="text-sm text-slate-500">Overview of your business performance</p>
-
-      <div className="mt-6">
-        <AlertsPanel alerts={alerts} />
-      </div>
 
       <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
         <StatCard icon={Wrench} label="Total Services" value={stats.totalServices} tint="violet" />

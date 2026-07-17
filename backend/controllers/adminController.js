@@ -5,7 +5,7 @@ import Service from '../models/Service.js'
 import Booking from '../models/Booking.js'
 import Review from '../models/Review.js'
 import Settings from '../models/Settings.js'
-import { buildAdminAlerts } from '../utils/dashboardAlerts.js'
+import { syncAdminNotifications, markAdminNotificationsRead } from '../utils/notifications.js'
 import { defaultUserSiteTheme, mergeUserSiteTheme } from '../utils/defaultUserSiteTheme.js'
 import { toGeoPoint } from '../utils/geo.js'
 
@@ -354,8 +354,6 @@ export const getDashboard = asyncHandler(async (req, res) => {
     .sort('-createdAt')
     .limit(5)
 
-  const alerts = await buildAdminAlerts()
-
   res.json({
     success: true,
     stats: {
@@ -368,6 +366,19 @@ export const getDashboard = asyncHandler(async (req, res) => {
       revenue,
     },
     recentBookings,
-    alerts,
   })
+})
+
+// @desc Admin notifications (last 3 days)
+// @route GET /api/admin/notifications
+export const getNotifications = asyncHandler(async (req, res) => {
+  const { notifications, unreadCount } = await syncAdminNotifications()
+  res.json({ success: true, notifications, unreadCount })
+})
+
+// @desc Mark all admin notifications as read
+// @route PUT /api/admin/notifications/read
+export const markNotificationsRead = asyncHandler(async (req, res) => {
+  const { notifications, unreadCount } = await markAdminNotificationsRead()
+  res.json({ success: true, notifications, unreadCount })
 })

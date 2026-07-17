@@ -1,6 +1,8 @@
 import express from 'express'
 import {
   getDashboard,
+  getNotifications,
+  markNotificationsRead,
   createService,
   getMyServices,
   updateService,
@@ -18,6 +20,8 @@ const router = express.Router()
 router.use(protect, authorize('vendor'))
 
 router.get('/dashboard', getDashboard)
+router.get('/notifications', getNotifications)
+router.put('/notifications/read', markNotificationsRead)
 router.route('/services').post(createService).get(getMyServices)
 router.route('/services/:id').put(updateService).delete(deleteService)
 router.get('/bookings', getMyBookings)

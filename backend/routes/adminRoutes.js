@@ -21,6 +21,8 @@ import {
   getUserSiteTheme,
   updateUserSiteTheme,
   getDashboard,
+  getNotifications,
+  markNotificationsRead,
 } from '../controllers/adminController.js'
 import { protect, authorize } from '../middleware/authMiddleware.js'
 
@@ -29,6 +31,8 @@ const router = express.Router()
 router.use(protect, authorize('admin'))
 
 router.get('/dashboard', getDashboard)
+router.get('/notifications', getNotifications)
+router.put('/notifications/read', markNotificationsRead)
 
 router.route('/vendors').post(createVendor).get(getVendors)
 router.route('/vendors/:id').put(updateVendor).delete(deleteVendor)

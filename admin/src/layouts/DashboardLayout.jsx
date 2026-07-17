@@ -8,6 +8,7 @@ import {
   Wrench,
   CalendarCheck,
   Star,
+  Bell,
   Paintbrush,
   Settings,
   LogOut,
@@ -18,6 +19,7 @@ import {
   PanelLeftOpen,
 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext.jsx'
+import { useNotifications } from '../context/NotificationContext.jsx'
 
 const STORAGE_KEY = 'ue_admin_sidebar'
 const DEFAULT_WIDTH = 256
@@ -33,6 +35,7 @@ const navItems = [
   { to: '/services', label: 'Services', icon: Wrench },
   { to: '/bookings', label: 'Bookings', icon: CalendarCheck },
   { to: '/reviews', label: 'Reviews', icon: Star },
+  { to: '/notifications', label: 'Notifications', icon: Bell, badge: true },
   { to: '/site-customizer', label: 'Site Customizer', icon: Paintbrush },
   { to: '/settings', label: 'Settings', icon: Settings },
 ]
@@ -51,8 +54,26 @@ const loadSidebarPrefs = () => {
   }
 }
 
+const NotificationBadge = ({ count, collapsed }) => {
+  if (!count) return null
+  const label = count > 99 ? '99+' : count
+  if (collapsed) {
+    return (
+      <span className="absolute top-1 right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-bold text-white">
+        {label}
+      </span>
+    )
+  }
+  return (
+    <span className="ml-auto flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-red-600 px-1.5 text-xs font-bold text-white">
+      {label}
+    </span>
+  )
+}
+
 const DashboardLayout = () => {
   const { admin, logout } = useAuth()
+  const { unreadCount } = useNotifications()
   const navigate = useNavigate()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [prefs, setPrefs] = useState(loadSidebarPrefs)
@@ -148,13 +169,14 @@ const DashboardLayout = () => {
                 to={item.to}
                 title={collapsed ? item.label : undefined}
                 className={({ isActive }) =>
-                  `flex items-center rounded-xl py-2.5 text-sm font-medium ${
+                  `relative flex items-center rounded-xl py-2.5 text-sm font-medium ${
                     collapsed ? 'justify-center px-2' : 'gap-3 px-3'
                   } ${isActive ? 'brand-gradient text-white' : 'text-slate-600 hover:bg-slate-50'}`
                 }
               >
                 <item.icon className="h-5 w-5 shrink-0" />
                 {!collapsed && <span className="truncate">{item.label}</span>}
+                {item.badge && <NotificationBadge count={unreadCount} collapsed={collapsed} />}
               </NavLink>
             ))}
           </nav>
@@ -221,6 +243,7 @@ const DashboardLayout = () => {
                 }
               >
                 <item.icon className="h-5 w-5" /> {item.label}
+                {item.badge && <NotificationBadge count={unreadCount} collapsed={false} />}
               </NavLink>
             ))}
           </nav>
