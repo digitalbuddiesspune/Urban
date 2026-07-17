@@ -163,7 +163,7 @@ const ServiceDetails = () => {
     .filter(Boolean)
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-24 lg:pb-10">
+    <div className="min-h-screen overflow-x-hidden bg-slate-50 pb-28 lg:pb-10">
       <div className="border-b border-slate-200 bg-white">
         <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 sm:px-6">
           <button
@@ -180,7 +180,7 @@ const ServiceDetails = () => {
 
       <div className="mx-auto grid max-w-7xl gap-5 px-4 py-5 sm:px-6 lg:grid-cols-[200px_minmax(0,1fr)_280px] lg:gap-6 lg:py-6">
         {/* Left: select a service */}
-        <aside className="lg:sticky lg:top-24 lg:self-start">
+        <aside className="min-w-0 lg:sticky lg:top-24 lg:self-start">
           <div className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm sm:p-4">
             <p className="text-sm font-semibold text-slate-900">Select a service</p>
             <div className="mt-3 flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] lg:flex-col lg:overflow-visible [&::-webkit-scrollbar]:hidden">
@@ -243,8 +243,8 @@ const ServiceDetails = () => {
                 )}
               </div>
 
-              <div className="mt-3 flex flex-wrap items-end justify-between gap-3">
-                <div>
+              <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
+                <div className="min-w-0">
                   <div className="flex flex-wrap items-baseline gap-2">
                     <span className="text-2xl font-bold text-slate-900">{formatCurrency(price)}</span>
                     {hasDiscount && (
@@ -259,12 +259,12 @@ const ServiceDetails = () => {
                     </p>
                   )}
                 </div>
-                <div className="flex w-full flex-col gap-2 sm:w-auto sm:min-w-[240px] sm:flex-row">
+                <div className="flex w-full gap-2 sm:w-auto sm:min-w-[260px]">
                   <button
                     type="button"
                     disabled={adding}
                     onClick={() => handleRequestAdd(activeService)}
-                    className={`min-h-[44px] flex-1 rounded-xl border px-4 py-2.5 text-sm font-semibold transition ${
+                    className={`min-h-[46px] flex-1 rounded-xl border px-3 py-2.5 text-sm font-semibold transition sm:flex-none sm:px-6 ${
                       inCart
                         ? 'border-emerald-600 bg-emerald-50 text-emerald-700'
                         : 'border-violet-600 text-violet-700 hover:bg-violet-50'
@@ -276,7 +276,7 @@ const ServiceDetails = () => {
                     type="button"
                     disabled={adding}
                     onClick={() => handleProceedToBook(activeService)}
-                    className="btn-primary min-h-[44px] flex-1 px-4 py-2.5 text-sm"
+                    className="btn-primary min-h-[46px] flex-[1.6] px-3 py-2.5 text-sm sm:flex-1 sm:px-6"
                   >
                     Proceed to book
                   </button>
@@ -413,7 +413,7 @@ const ServiceDetails = () => {
         </section>
 
         {/* Right: promise + cart */}
-        <aside className="space-y-4 lg:sticky lg:top-24 lg:self-start">
+        <aside className="min-w-0 space-y-4 lg:sticky lg:top-24 lg:self-start">
           <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
             <div className="absolute -right-2 -top-2 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 text-[10px] font-bold uppercase leading-tight text-white shadow-md">
               Quality
@@ -433,7 +433,7 @@ const ServiceDetails = () => {
             </ul>
           </div>
 
-          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+          <div className="hidden rounded-2xl border border-slate-200 bg-white p-4 shadow-sm lg:block">
             {count === 0 ? (
               <div className="flex flex-col items-center py-6 text-center">
                 <div className="flex h-14 w-14 items-center justify-center rounded-full bg-violet-50 text-violet-600">
