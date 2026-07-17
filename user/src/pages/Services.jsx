@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useMemo } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { Search, SlidersHorizontal, X } from 'lucide-react'
+import { Search, SlidersHorizontal, X, LayoutGrid } from 'lucide-react'
 import api from '../api/axios.js'
 import CategoryCard from '../components/CategoryCard.jsx'
 import ServiceCard from '../components/ServiceCard.jsx'
@@ -136,28 +136,58 @@ const Services = () => {
 
       <div>
         <label className="mb-2 block text-sm font-medium text-slate-700">Services</label>
-        <div className="space-y-1">
+        <div className="space-y-2.5">
           <button
             type="button"
             onClick={() => setCategory('')}
-            className={`w-full rounded-lg px-3 py-2 text-left text-sm font-medium transition ${
-              browsingAll ? 'bg-black text-white' : 'text-slate-700 hover:bg-slate-100'
+            className={`flex w-full items-center gap-3 rounded-2xl border bg-white p-2.5 text-left transition ${
+              browsingAll
+                ? 'border-slate-900 ring-1 ring-slate-900'
+                : 'border-slate-200 shadow-sm hover:border-slate-300 hover:shadow'
             }`}
           >
-            All services
-          </button>
-          {categories.map((c) => (
-            <button
-              key={c._id}
-              type="button"
-              onClick={() => setCategory(c._id)}
-              className={`w-full rounded-lg px-3 py-2 text-left text-sm font-medium transition ${
-                filters.category === c._id ? 'bg-black text-white' : 'text-slate-700 hover:bg-slate-100'
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-slate-100">
+              <LayoutGrid className="h-5 w-5 text-slate-600" />
+            </span>
+            <span
+              className={`text-[13px] leading-snug ${
+                browsingAll ? 'font-semibold text-slate-900' : 'font-medium text-slate-700'
               }`}
             >
-              {c.name}
-            </button>
-          ))}
+              All services
+            </span>
+          </button>
+          {categories.map((c) => {
+            const active = filters.category === c._id
+            return (
+              <button
+                key={c._id}
+                type="button"
+                onClick={() => setCategory(c._id)}
+                className={`flex w-full items-center gap-3 rounded-2xl border bg-white p-2.5 text-left transition ${
+                  active
+                    ? 'border-slate-900 ring-1 ring-slate-900'
+                    : 'border-slate-200 shadow-sm hover:border-slate-300 hover:shadow'
+                }`}
+              >
+                <span className="h-11 w-11 shrink-0 overflow-hidden rounded-xl bg-slate-100">
+                  <img
+                    src={getCategoryImage(c)}
+                    alt=""
+                    loading="lazy"
+                    className="h-full w-full object-cover"
+                  />
+                </span>
+                <span
+                  className={`line-clamp-2 text-[13px] leading-snug ${
+                    active ? 'font-semibold text-slate-900' : 'font-medium text-slate-700'
+                  }`}
+                >
+                  {c.name}
+                </span>
+              </button>
+            )
+          })}
         </div>
       </div>
 

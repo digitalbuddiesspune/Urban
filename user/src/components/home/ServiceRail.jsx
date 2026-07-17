@@ -13,45 +13,54 @@ export const ServiceRailCard = ({ service, showInstant = true, onRequestAdd }) =
   const { isInCart } = useCart()
   const hasDiscount = service.discountPrice > 0
   const price = hasDiscount ? service.discountPrice : service.price
+  const discountPct = hasDiscount
+    ? Math.round(((service.price - service.discountPrice) / service.price) * 100)
+    : 0
   const rating = service.rating > 0 ? Number(service.rating).toFixed(2) : null
   const detailPath = `/services/${service._id}`
   const inCart = isInCart(service._id)
 
   return (
-    <div className="w-[calc((100%-0.875rem)/2.15)] shrink-0 snap-start sm:w-[calc((100%-2.25rem)/3.2)] lg:w-[calc((100%-4rem)/5)]">
+    <div className="group w-[calc((100%-0.875rem)/2.15)] shrink-0 snap-start overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-lg sm:w-[calc((100%-2.25rem)/3.2)] lg:w-[calc((100%-4rem)/5)]">
       <Link to={detailPath} className="block">
-        <div className="aspect-square overflow-hidden rounded-2xl bg-slate-100">
+        <div className="relative aspect-square overflow-hidden bg-slate-100">
           <img
             src={service.images?.[0] || FALLBACK}
             alt={service.title}
-            className="h-full w-full object-cover"
+            className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
             loading="lazy"
           />
-        </div>
-        <h3 className="mt-2.5 line-clamp-2 text-[13px] font-semibold leading-snug text-slate-900 sm:text-sm">
-          {service.title}
-        </h3>
-        <div className="mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-xs text-slate-500">
+          {discountPct > 0 && (
+            <span className="absolute left-2 top-2 rounded-md bg-emerald-600 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white shadow-sm">
+              {discountPct}% off
+            </span>
+          )}
           {rating && (
-            <span className="flex items-center gap-0.5">
-              <Star className="h-3 w-3 fill-slate-400 text-slate-400" />
+            <span className="absolute bottom-2 left-2 flex items-center gap-1 rounded-lg bg-white/95 px-1.5 py-0.5 text-[11px] font-semibold text-slate-900 shadow-sm backdrop-blur">
+              <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
               {rating}
             </span>
           )}
-          {rating && showInstant && <span className="text-slate-300">•</span>}
+        </div>
+        <div className="px-3 pt-2.5">
           {showInstant && (
-            <span className="flex items-center gap-0.5 font-medium text-emerald-600">
+            <span className="flex items-center gap-0.5 text-[11px] font-semibold uppercase tracking-wide text-emerald-600">
               <Zap className="h-3 w-3 fill-emerald-600" />
               Instant
             </span>
           )}
+          <h3 className="mt-0.5 line-clamp-2 min-h-[2.4em] text-[13px] font-semibold leading-snug text-slate-900 sm:text-sm">
+            {service.title}
+          </h3>
         </div>
       </Link>
-      <div className="mt-1.5 flex items-center justify-between gap-2">
-        <div className="flex min-w-0 items-baseline gap-1.5">
-          <span className="text-sm font-semibold text-slate-900">{formatCurrency(price)}</span>
+      <div className="flex items-center justify-between gap-2 px-3 pb-3 pt-1.5">
+        <div className="flex min-w-0 flex-col">
+          <span className="text-sm font-bold text-slate-900">{formatCurrency(price)}</span>
           {hasDiscount && (
-            <span className="text-xs text-slate-400 line-through">{formatCurrency(service.price)}</span>
+            <span className="text-[11px] text-slate-400 line-through">
+              {formatCurrency(service.price)}
+            </span>
           )}
         </div>
         <button
@@ -61,10 +70,10 @@ export const ServiceRailCard = ({ service, showInstant = true, onRequestAdd }) =
             e.stopPropagation()
             onRequestAdd(service)
           }}
-          className={`shrink-0 rounded-lg border px-2.5 py-1 text-xs font-semibold transition ${
+          className={`shrink-0 rounded-lg px-3 py-1.5 text-xs font-bold transition ${
             inCart
-              ? 'border-emerald-600 bg-emerald-50 text-emerald-700'
-              : 'border-violet-600 text-violet-700 hover:bg-violet-50'
+              ? 'border border-emerald-600 bg-emerald-50 text-emerald-700'
+              : 'bg-violet-600 text-white shadow-sm hover:bg-violet-700'
           }`}
         >
           {inCart ? 'Added' : 'Add'}

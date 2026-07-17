@@ -205,9 +205,9 @@ const ServiceDetails = () => {
       <div className="mx-auto grid max-w-7xl gap-5 px-4 py-5 sm:px-6 lg:grid-cols-[200px_minmax(0,1fr)_280px] lg:gap-6 lg:py-6">
         {/* Left: select a service */}
         <aside className="min-w-0 lg:sticky lg:top-24 lg:self-start">
-          <div className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm sm:p-4">
-            <p className="text-sm font-semibold text-slate-900">Select a service</p>
-            <div className="mt-3 flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] lg:flex-col lg:overflow-visible [&::-webkit-scrollbar]:hidden">
+          <div className="lg:rounded-2xl lg:border lg:border-slate-200 lg:bg-white lg:p-4 lg:shadow-sm">
+            <p className="text-sm font-bold text-slate-900">Select a service</p>
+            <div className="mt-3 flex gap-2.5 overflow-x-auto pb-1 [scrollbar-width:none] lg:flex-col lg:gap-3 lg:overflow-visible [&::-webkit-scrollbar]:hidden">
               {siblings.map((svc) => {
                 const active = String(svc._id) === String(activeId)
                 return (
@@ -215,20 +215,24 @@ const ServiceDetails = () => {
                     key={svc._id}
                     type="button"
                     onClick={() => selectService(svc._id)}
-                    className={`flex w-[88px] shrink-0 flex-col items-center rounded-xl border p-2 text-center transition lg:w-full lg:flex-row lg:gap-2.5 lg:p-2 lg:text-left ${
+                    className={`flex w-[92px] shrink-0 flex-col items-center rounded-2xl border bg-white p-2.5 text-center transition lg:w-full lg:flex-row lg:gap-3 lg:p-2.5 lg:text-left ${
                       active
-                        ? 'border-violet-500 bg-violet-50 ring-1 ring-violet-200'
-                        : 'border-slate-100 bg-slate-50 hover:border-slate-200'
+                        ? 'border-slate-900 ring-1 ring-slate-900'
+                        : 'border-slate-200 shadow-sm hover:border-slate-300 hover:shadow'
                     }`}
                   >
-                    <div className="h-12 w-12 overflow-hidden rounded-lg bg-white lg:h-11 lg:w-11">
+                    <div className="h-12 w-12 shrink-0 overflow-hidden rounded-xl bg-slate-100 lg:h-12 lg:w-12">
                       <img
                         src={svc.images?.[0] || FALLBACK}
                         alt=""
                         className="h-full w-full object-cover"
                       />
                     </div>
-                    <span className="mt-1.5 line-clamp-2 text-[11px] font-medium leading-snug text-slate-800 lg:mt-0 lg:text-xs">
+                    <span
+                      className={`mt-1.5 line-clamp-2 text-[11px] leading-snug lg:mt-0 lg:text-[13px] ${
+                        active ? 'font-semibold text-slate-900' : 'font-medium text-slate-700'
+                      }`}
+                    >
                       {svc.title}
                     </span>
                   </button>
