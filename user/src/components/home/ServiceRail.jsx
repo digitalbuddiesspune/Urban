@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import toast from 'react-hot-toast'
-import { ChevronRight, Star, Zap } from 'lucide-react'
+import { ChevronRight, MapPin, Star, Zap } from 'lucide-react'
 import { formatCurrency } from '../../utils/helpers.js'
 import { useAuth } from '../../context/AuthContext.jsx'
 import { useCart } from '../../context/CartContext.jsx'
@@ -39,6 +39,12 @@ export const ServiceRailCard = ({ service, showInstant = true, onRequestAdd }) =
             <span className="absolute bottom-2 left-2 flex items-center gap-1 rounded-lg bg-white/95 px-1.5 py-0.5 text-[11px] font-semibold text-slate-900 shadow-sm backdrop-blur">
               <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
               {rating}
+            </span>
+          )}
+          {service.distanceLabel && (
+            <span className="absolute bottom-2 right-2 flex items-center gap-0.5 rounded-lg bg-black/80 px-1.5 py-0.5 text-[10px] font-semibold text-white shadow-sm">
+              <MapPin className="h-3 w-3" />
+              {service.distanceLabel}
             </span>
           )}
         </div>

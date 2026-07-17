@@ -16,13 +16,28 @@ export const AuthProvider = ({ children }) => {
     setUser(userData)
   }
 
+  const updateUser = (userData) => {
+    const merged = { ...user, ...userData }
+    localStorage.setItem('ue_user', JSON.stringify(merged))
+    setUser(merged)
+    return merged
+  }
+
   const login = async (email, password) => {
     const { data } = await api.post('/auth/login', { email, password })
     if (data.user.role !== 'user') {
       throw new Error('This portal is for customers only')
     }
     persist(data.token, data.user)
-    return data.user
+    try {
+      const profile = await api.get('/auth/profile')
+      const full = { ...data.user, ...profile.data.user }
+      localStorage.setItem('ue_user', JSON.stringify(full))
+      setUser(full)
+      return full
+    } catch {
+      return data.user
+    }
   }
 
   const register = async (payload) => {
@@ -40,9 +55,9 @@ export const AuthProvider = ({ children }) => {
   const refreshProfile = async () => {
     try {
       const { data } = await api.get('/auth/profile')
-      setUser((prev) => ({ ...prev, ...data.user }))
+      return updateUser(data.user)
     } catch {
-      /* ignore */
+      return null
     }
   }
 
@@ -52,7 +67,9 @@ export const AuthProvider = ({ children }) => {
   }, [])
 
   return (
-    <AuthContext.Provider value={{ user, loading, setLoading, login, register, logout, refreshProfile }}>
+    <AuthContext.Provider
+      value={{ user, loading, setLoading, login, register, logout, refreshProfile, updateUser }}
+    >
       {children}
     </AuthContext.Provider>
   )

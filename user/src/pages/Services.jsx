@@ -10,6 +10,7 @@ import Pagination from '../components/ui/Pagination.jsx'
 import { getCategoryImage } from '../utils/categoryImages.js'
 import { useTheme } from '../context/ThemeContext.jsx'
 import { useLocation } from '../context/LocationContext.jsx'
+import { appendLocationParams } from '../utils/helpers.js'
 
 const Services = () => {
   const { theme } = useTheme()
@@ -20,6 +21,7 @@ const Services = () => {
   const [services, setServices] = useState([])
   const [servicesLoading, setServicesLoading] = useState(false)
   const [pages, setPages] = useState(1)
+  const [serviceRadiusKm, setServiceRadiusKm] = useState(null)
   const [filtersOpen, setFiltersOpen] = useState(false)
 
   const [filters, setFilters] = useState({
@@ -60,14 +62,14 @@ const Services = () => {
     try {
       const params = new URLSearchParams()
       Object.entries(filters).forEach(([k, v]) => v && params.append(k, v))
-      if (location?.lat != null && location?.lng != null) {
-        params.set('lat', String(location.lat))
-        params.set('lng', String(location.lng))
-        if (!filters.sort) params.set('sort', 'nearest')
+      appendLocationParams(params, location)
+      if (location?.lat != null && location?.lng != null && !filters.sort) {
+        params.set('sort', 'nearest')
       }
       const { data } = await api.get(`/user/services?${params.toString()}`)
       setServices(data.services)
       setPages(data.pages)
+      setServiceRadiusKm(data.serviceRadiusKm ?? null)
     } finally {
       setServicesLoading(false)
     }
@@ -351,9 +353,14 @@ const Services = () => {
               {!location && (
                 <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
                   <p className="text-sm text-amber-900">
-                    Enable location to see <strong>nearest vendors</strong> first.
+                    Select a city (Mumbai, Pune, …) or enable GPS to see local providers.
                   </p>
-                  <button type="button" onClick={requestLocation} className="btn-primary px-4 py-2 text-sm" disabled={locStatus === 'loading'}>
+                  <button
+                    type="button"
+                    onClick={() => requestLocation({ forceFresh: true })}
+                    className="btn-primary px-4 py-2 text-sm"
+                    disabled={locStatus === 'loading'}
+                  >
                     {locStatus === 'loading' ? 'Locating…' : 'Use my location'}
                   </button>
                 </div>
@@ -361,13 +368,27 @@ const Services = () => {
 
               {location && services.length > 0 && services[0]?.distanceLabel && (
                 <p className="mb-4 text-sm text-slate-500">
-                  Sorted by distance — nearest first ({services[0].distanceLabel} away)
+                  {location.source === 'city' && location.label
+                    ? `In ${location.label} — nearest first (${services[0].distanceLabel} away)`
+                    : `Within ${serviceRadiusKm || 20} km — nearest first (${services[0].distanceLabel} away)`}
                 </p>
               )}
               {services.length === 0 ? (
                 <EmptyState
-                  title="Providers coming soon"
-                  subtitle="This service is available — verified providers will be listed here shortly."
+                  title={
+                    location?.source === 'city'
+                      ? `No providers in ${location.label || 'this city'}`
+                      : location
+                        ? 'No nearby providers'
+                        : 'Providers coming soon'
+                  }
+                  subtitle={
+                    location?.source === 'city'
+                      ? `No services found for ${location.label}. Try another city or check back later.`
+                      : location
+                        ? `No services found within ${serviceRadiusKm || 20} km of your location. Try a different city or check back later.`
+                        : 'This service is available — verified providers will be listed here shortly.'
+                  }
                   icon={Search}
                 />
               ) : (

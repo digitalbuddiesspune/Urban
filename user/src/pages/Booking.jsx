@@ -5,8 +5,9 @@ import { MapPin, Plus, ChevronLeft } from 'lucide-react'
 import api from '../api/axios.js'
 import { PageLoader } from '../components/ui/Loader.jsx'
 import Spinner from '../components/ui/Loader.jsx'
-import { formatCurrency, formatDate, formatTime } from '../utils/helpers.js'
+import { appendLocationParams, formatCurrency, formatDate, formatTime } from '../utils/helpers.js'
 import { useCart } from '../context/CartContext.jsx'
+import { useLocation as useUserLocation } from '../context/LocationContext.jsx'
 import ScheduleServiceModal from '../components/ScheduleServiceModal.jsx'
 
 const emptyAddr = { label: 'Home', line1: '', line2: '', city: '', state: '', pincode: '' }
@@ -16,6 +17,7 @@ const Booking = () => {
   const { id } = useParams()
   const navigate = useNavigate()
   const location = useLocation()
+  const { location: userLocation } = useUserLocation()
   const fromCart = location.state?.fromCart || false
   const bookAll = Boolean(location.state?.bookAll)
   const { items, removeItem, isInCart, total: cartTotal, clearCart, updateSchedule, addItem } = useCart()
@@ -36,16 +38,21 @@ const Booking = () => {
   const [useNew, setUseNew] = useState(false)
 
   useEffect(() => {
-    Promise.all([api.get(`/user/services/${id}`), api.get('/user/addresses')])
+    const params = appendLocationParams(new URLSearchParams(), userLocation)
+    const query = Object.fromEntries(params.entries())
+    Promise.all([api.get(`/user/services/${id}`, { params: query }), api.get('/user/addresses')])
       .then(([s, a]) => {
         setService(s.data.service)
         setAddresses(a.data.addresses)
-        if (a.data.addresses.length > 0) setSelectedAddr(a.data.addresses[0]._id)
+        const primary = a.data.addresses.find((address) => address.isPrimary)
+        if (a.data.addresses.length > 0) {
+          setSelectedAddr((primary || a.data.addresses[0])._id)
+        }
         else setUseNew(true)
       })
       .catch(() => toast.error('Could not load booking details'))
       .finally(() => setLoading(false))
-  }, [id])
+  }, [id, userLocation?.lat, userLocation?.lng, userLocation?.city, userLocation?.updatedAt])
 
   if (loading) return <PageLoader />
   if (!service) return <p className="py-16 text-center text-slate-500">Service not found</p>
@@ -76,6 +83,7 @@ const Booking = () => {
             discountPrice: service.discountPrice || 0,
             bookingDate: '',
             bookingTime: '',
+            available: service.withinRadius !== false,
           },
         ]
   ).map(applyScheduleOverride)
@@ -87,6 +95,7 @@ const Booking = () => {
   const hasSchedule = (item) => Boolean(item?.bookingDate && item?.bookingTime)
   const scheduleReady = summaryItems.every(hasSchedule)
   const missingScheduleItem = summaryItems.find((item) => !hasSchedule(item))
+  const unavailableItem = summaryItems.find((item) => item.available === false)
 
   const submit = async (e) => {
     e.preventDefault()
@@ -100,6 +109,8 @@ const Booking = () => {
               title: service.title,
               bookingDate: singleCartItem?.bookingDate || '',
               bookingTime: singleCartItem?.bookingTime || '',
+              available:
+                singleCartItem?.available ?? (service.withinRadius !== false),
             }),
           ]
 
@@ -114,6 +125,11 @@ const Booking = () => {
           ? `Please select date & time for "${missingSchedule.title}"`
           : 'Please select date & time before booking'
       )
+    }
+
+    const unavailable = servicesToBook.find((item) => item.available === false)
+    if (unavailable) {
+      return toast.error(`"${unavailable.title}" is not available at this location`)
     }
 
     let address
@@ -244,13 +260,20 @@ const Booking = () => {
           Select date & time before confirming booking.
         </p>
       )}
+      {(service.withinRadius === false || unavailableItem) && (
+        <p className="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-800">
+          This service is outside the current service radius. Choose another location or service.
+        </p>
+      )}
       <div className="mt-4 flex justify-between font-bold text-slate-900">
         <span>Total</span>
         <span>{formatCurrency(orderTotal)}</span>
       </div>
       <button
         type="submit"
-        disabled={submitting || !scheduleReady}
+        disabled={
+          submitting || !scheduleReady || service.withinRadius === false || Boolean(unavailableItem)
+        }
         className="btn-primary mt-4 flex w-full items-center justify-center gap-2 py-3 disabled:cursor-not-allowed disabled:opacity-60"
       >
         {submitting && <Spinner className="h-4 w-4" />} Confirm booking

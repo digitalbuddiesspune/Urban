@@ -1,11 +1,13 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import api from '../api/axios.js'
 import { useAuth } from './AuthContext.jsx'
+import { useLocation } from './LocationContext.jsx'
 
 const CartContext = createContext(null)
 
 export const CartProvider = ({ children }) => {
   const { user } = useAuth()
+  const { location } = useLocation()
   const [items, setItems] = useState([])
   const [loading, setLoading] = useState(false)
 
@@ -21,14 +23,18 @@ export const CartProvider = ({ children }) => {
     }
     setLoading(true)
     try {
-      const { data } = await api.get('/user/cart')
+      const params =
+        location?.lat != null && location?.lng != null
+          ? { lat: location.lat, lng: location.lng }
+          : {}
+      const { data } = await api.get('/user/cart', { params })
       setItems(data.items || [])
     } catch {
       setItems([])
     } finally {
       setLoading(false)
     }
-  }, [user])
+  }, [user, location?.lat, location?.lng, location?.updatedAt])
 
   useEffect(() => {
     if (!user) {
@@ -45,6 +51,8 @@ export const CartProvider = ({ children }) => {
         serviceId: service._id,
         bookingDate: schedule.bookingDate || '',
         bookingTime: schedule.bookingTime || '',
+        lat: location?.lat,
+        lng: location?.lng,
       })
       setItems(data.items || [])
       return { ok: true, alreadyInCart: Boolean(data.alreadyInCart) }
@@ -55,7 +63,12 @@ export const CartProvider = ({ children }) => {
 
   const removeItem = async (serviceId) => {
     if (!user) return
-    const { data } = await api.delete(`/user/cart/items/${serviceId}`)
+    const { data } = await api.delete(`/user/cart/items/${serviceId}`, {
+      params: {
+        lat: location?.lat,
+        lng: location?.lng,
+      },
+    })
     setItems(data.items || [])
   }
 
@@ -66,7 +79,11 @@ export const CartProvider = ({ children }) => {
       await removeItem(serviceId)
       return
     }
-    const { data } = await api.put(`/user/cart/items/${serviceId}`, { qty: next })
+    const { data } = await api.put(`/user/cart/items/${serviceId}`, {
+      qty: next,
+      lat: location?.lat,
+      lng: location?.lng,
+    })
     setItems(data.items || [])
   }
 
@@ -75,6 +92,8 @@ export const CartProvider = ({ children }) => {
     const { data } = await api.put(`/user/cart/items/${serviceId}`, {
       bookingDate: schedule.bookingDate,
       bookingTime: schedule.bookingTime,
+      lat: location?.lat,
+      lng: location?.lng,
     })
     setItems(data.items || [])
   }

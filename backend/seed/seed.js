@@ -49,12 +49,26 @@ const seed = async () => {
         phone: process.env.SEED_VENDOR_PHONE || '9999999999',
         password: vendorPassword,
         businessName: process.env.SEED_VENDOR_BUSINESS || 'UrbanEase Demo Vendor',
-        serviceAreas: ['Pune', 'Mumbai', 'Delhi'],
+        serviceAreas: ['Pune'],
         city: 'Pune',
+        pincode: '411001',
+        location: {
+          type: 'Point',
+          coordinates: [73.8567, 18.5204],
+        },
         status: 'active',
       })
       console.log(`Vendor created -> ${vendorEmail}`)
     } else {
+      if (!Array.isArray(vendor.location?.coordinates) || vendor.location.coordinates.length !== 2) {
+        vendor.city = vendor.city || 'Pune'
+        vendor.pincode = vendor.pincode || '411001'
+        vendor.location = {
+          type: 'Point',
+          coordinates: [73.8567, 18.5204],
+        }
+        await vendor.save()
+      }
       console.log(`Vendor ready -> ${vendorEmail}`)
     }
 
@@ -89,7 +103,7 @@ const seed = async () => {
           discountPrice: svc.discountPrice || 0,
           estimatedTime: '45-90 mins',
           images: [svc.image],
-          serviceArea: ['Pune', 'Mumbai', 'Delhi'],
+          serviceArea: ['Pune'],
           availability: true,
           status: 'approved',
           isActive: true,

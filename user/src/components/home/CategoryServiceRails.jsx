@@ -1,9 +1,12 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import api from '../../api/axios.js'
+import { useLocation } from '../../context/LocationContext.jsx'
+import { appendLocationParams } from '../../utils/helpers.js'
 import ServiceRail from './ServiceRail.jsx'
 
 const CategoryServiceRails = ({ categories }) => {
+  const { location } = useLocation()
   const [byCategory, setByCategory] = useState({})
   const [loading, setLoading] = useState(true)
 
@@ -17,12 +20,22 @@ const CategoryServiceRails = ({ categories }) => {
     setLoading(true)
 
     Promise.all(
-      categories.map((cat) =>
-        api
-          .get(`/user/services?category=${cat._id}&sort=rating&limit=12`)
+      categories.map((cat) => {
+        const params = new URLSearchParams({
+          category: cat._id,
+          limit: '12',
+        })
+        appendLocationParams(params, location)
+        if (location?.lat != null && location?.lng != null) {
+          params.set('sort', 'nearest')
+        } else {
+          params.set('sort', 'rating')
+        }
+        return api
+          .get(`/user/services?${params.toString()}`)
           .then((r) => ({ id: cat._id, services: r.data.services || [] }))
           .catch(() => ({ id: cat._id, services: [] }))
-      )
+      }),
     )
       .then((results) => {
         if (cancelled) return
@@ -39,7 +52,7 @@ const CategoryServiceRails = ({ categories }) => {
     return () => {
       cancelled = true
     }
-  }, [categories])
+  }, [categories, location?.lat, location?.lng, location?.city, location?.updatedAt])
 
   if (loading || !categories?.length) return null
 
@@ -56,7 +69,13 @@ const CategoryServiceRails = ({ categories }) => {
               {cat.description ? (
                 <p className="mt-0.5 text-sm text-slate-500 sm:text-base">{cat.description}</p>
               ) : (
-                <p className="mt-0.5 text-sm text-slate-500 sm:text-base">{cat.name} services</p>
+                <p className="mt-0.5 text-sm text-slate-500 sm:text-base">
+                  {location?.source === 'city' && location.label
+                    ? `${cat.name} in ${location.label}`
+                    : location
+                      ? `Nearest ${cat.name} services`
+                      : `${cat.name} services`}
+                </p>
               )}
             </div>
             <Link

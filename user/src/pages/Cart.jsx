@@ -69,13 +69,23 @@ const Cart = () => {
 
   const hasSchedule = (item) => Boolean(item?.bookingDate && item?.bookingTime)
   const missingScheduleItem = items.find((item) => !hasSchedule(item))
+  const unavailableItem = items.find((item) => item.available === false)
 
   const requireSchedule = (item, { bookAll = false } = {}) => {
     if (bookAll) {
+      const unavailable = items.find((i) => i.available === false)
+      if (unavailable) {
+        toast.error(`"${unavailable.title}" is not available at your current location`)
+        return false
+      }
       const missing = items.find((i) => !hasSchedule(i))
       if (!missing) return true
       toast.error(`Please select date & time for "${missing.title}"`)
       setEditingItem(missing)
+      return false
+    }
+    if (item.available === false) {
+      toast.error(item.unavailableReason || 'This service is not available at your location')
       return false
     }
     if (hasSchedule(item)) return true
@@ -119,6 +129,12 @@ const Cart = () => {
           Select date & time for all services before booking.
         </p>
       )}
+      {unavailableItem && (
+        <p className="mt-3 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
+          Some services are outside the current service radius. Remove them or change your primary
+          location before booking.
+        </p>
+      )}
 
       <ul className="mt-6 space-y-3">
         {items.map((item) => (
@@ -147,6 +163,11 @@ const Cart = () => {
                   </Link>
                   {item.categoryName && (
                     <p className="text-xs text-slate-500">{item.categoryName}</p>
+                  )}
+                  {item.available === false && (
+                    <p className="mt-1 text-xs font-medium text-red-600">
+                      {item.unavailableReason || 'Unavailable at your location'}
+                    </p>
                   )}
                 </div>
                 <div className="flex shrink-0 items-start gap-1">
@@ -203,7 +224,9 @@ const Cart = () => {
                 state={{ fromCart: true, bookAll: false }}
                 onClick={(e) => handleBookOne(e, item)}
                 className={`mt-2.5 inline-flex text-sm font-semibold hover:underline ${
-                  hasSchedule(item) ? 'text-violet-700' : 'cursor-not-allowed text-slate-400 no-underline'
+                  hasSchedule(item) && item.available !== false
+                    ? 'text-violet-700'
+                    : 'cursor-not-allowed text-slate-400 no-underline'
                 }`}
               >
                 Book this service →
@@ -224,9 +247,9 @@ const Cart = () => {
             state={{ fromCart: true, bookAll: true }}
             onClick={handleBookAll}
             className={`btn-primary rounded-xl px-5 py-2.5 text-sm font-semibold ${
-              missingScheduleItem ? 'pointer-events-auto opacity-60' : ''
+              missingScheduleItem || unavailableItem ? 'pointer-events-auto opacity-60' : ''
             }`}
-            aria-disabled={Boolean(missingScheduleItem)}
+            aria-disabled={Boolean(missingScheduleItem || unavailableItem)}
           >
             Proceed to book
           </Link>

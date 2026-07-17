@@ -12,7 +12,7 @@ import {
 } from 'lucide-react'
 import api from '../api/axios.js'
 import { PageLoader } from '../components/ui/Loader.jsx'
-import { formatCurrency } from '../utils/helpers.js'
+import { appendLocationParams, formatCurrency } from '../utils/helpers.js'
 import { useAuth } from '../context/AuthContext.jsx'
 import { useLocation } from '../context/LocationContext.jsx'
 import { useCart } from '../context/CartContext.jsx'
@@ -42,10 +42,7 @@ const ServiceDetails = () => {
     setLoading(true)
 
     const params = new URLSearchParams()
-    if (location?.lat != null && location?.lng != null) {
-      params.set('lat', String(location.lat))
-      params.set('lng', String(location.lng))
-    }
+    appendLocationParams(params, location)
     const q = params.toString()
 
     api
@@ -61,36 +58,39 @@ const ServiceDetails = () => {
           return
         }
         const listParams = new URLSearchParams({ category: String(categoryId), limit: '50' })
-        if (location?.lat != null && location?.lng != null) {
-          listParams.set('lat', String(location.lat))
-          listParams.set('lng', String(location.lng))
-        }
+        appendLocationParams(listParams, location)
         const list = await api.get(`/user/services?${listParams.toString()}`)
         const services = list.data.services || []
 
-        // Same service offered by multiple vendors → keep only the nearest one.
-        const byTitle = new Map()
-        for (const item of services) {
-          const key = (item.title || '').trim().toLowerCase()
-          const existing = byTitle.get(key)
-          const isCurrent = String(item._id) === String(s._id)
-          if (!existing) {
-            byTitle.set(key, item)
-            continue
+        let related
+        if (location?.source === 'city') {
+          // City browse: show every vendor serving this city, even for the same service.
+          related = services
+        } else {
+          // GPS/address browse: same service from multiple vendors → keep only the nearest one.
+          const byTitle = new Map()
+          for (const item of services) {
+            const key = (item.title || '').trim().toLowerCase()
+            const existing = byTitle.get(key)
+            const isCurrent = String(item._id) === String(s._id)
+            if (!existing) {
+              byTitle.set(key, item)
+              continue
+            }
+            const existingIsCurrent = String(existing._id) === String(s._id)
+            if (existingIsCurrent) continue
+            if (
+              isCurrent ||
+              (item.distanceKm != null &&
+                (existing.distanceKm == null || item.distanceKm < existing.distanceKm))
+            ) {
+              byTitle.set(key, item)
+            }
           }
-          const existingIsCurrent = String(existing._id) === String(s._id)
-          if (existingIsCurrent) continue
-          if (
-            isCurrent ||
-            (item.distanceKm != null &&
-              (existing.distanceKm == null || item.distanceKm < existing.distanceKm))
-          ) {
-            byTitle.set(key, item)
-          }
+          related = [...byTitle.values()]
         }
-        const deduped = [...byTitle.values()]
-        const hasCurrent = deduped.some((item) => String(item._id) === String(s._id))
-        setSiblings(hasCurrent ? deduped : [s, ...deduped])
+        const hasCurrent = related.some((item) => String(item._id) === String(s._id))
+        setSiblings(hasCurrent ? related : [s, ...related])
       })
       .catch(() => {
         setService(null)
@@ -116,6 +116,10 @@ const ServiceDetails = () => {
       requireLogin()
       return
     }
+    if (svc.withinRadius === false) {
+      toast.error('This service is outside the current service radius')
+      return
+    }
     if (isInCart(svc._id)) {
       toast.success('Already in cart')
       return
@@ -127,6 +131,10 @@ const ServiceDetails = () => {
   const handleProceedToBook = (svc) => {
     if (!user) {
       requireLogin()
+      return
+    }
+    if (svc.withinRadius === false) {
+      toast.error('This service is outside the current service radius')
       return
     }
     const cartItem = items.find((i) => String(i.serviceId) === String(svc._id))
@@ -290,7 +298,7 @@ const ServiceDetails = () => {
                 <div className="flex w-full gap-2 sm:w-auto sm:min-w-[260px]">
                   <button
                     type="button"
-                    disabled={adding}
+                    disabled={adding || activeService.withinRadius === false}
                     onClick={() => handleRequestAdd(activeService)}
                     className={`min-h-[46px] flex-1 rounded-xl border px-3 py-2.5 text-sm font-semibold transition sm:flex-none sm:px-6 ${
                       inCart
@@ -302,14 +310,19 @@ const ServiceDetails = () => {
                   </button>
                   <button
                     type="button"
-                    disabled={adding}
+                    disabled={adding || activeService.withinRadius === false}
                     onClick={() => handleProceedToBook(activeService)}
-                    className="btn-primary min-h-[46px] flex-[1.6] px-3 py-2.5 text-sm sm:flex-1 sm:px-6"
+                    className="btn-primary min-h-[46px] flex-[1.6] px-3 py-2.5 text-sm disabled:cursor-not-allowed disabled:opacity-50 sm:flex-1 sm:px-6"
                   >
                     Proceed to book
                   </button>
                 </div>
               </div>
+              {activeService.withinRadius === false && (
+                <p className="mt-3 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+                  No provider for this service is available within the current service radius.
+                </p>
+              )}
 
               {detailBullets.length > 0 ? (
                 <ul className="mt-4 space-y-1.5 border-t border-slate-100 pt-4">

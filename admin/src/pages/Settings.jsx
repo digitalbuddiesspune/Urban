@@ -29,6 +29,7 @@ const Settings = () => {
         siteName: platform.siteName,
         supportEmail: platform.supportEmail,
         commission: Number(platform.commission),
+        serviceRadiusKm: Number(platform.serviceRadiusKm),
       })
       setPlatform(data.settings)
       toast.success('Platform settings saved')
@@ -85,6 +86,21 @@ const Settings = () => {
         <div>
           <label className="mb-1 block text-sm font-medium text-slate-700">Commission (%)</label>
           <input type="number" className="input" value={platform.commission} onChange={(e) => setPlatform({ ...platform, commission: e.target.value })} />
+        </div>
+        <div>
+          <label className="mb-1 block text-sm font-medium text-slate-700">Service radius (km)</label>
+          <input
+            type="number"
+            min={1}
+            max={500}
+            required
+            className="input"
+            value={platform.serviceRadiusKm ?? 20}
+            onChange={(e) => setPlatform({ ...platform, serviceRadiusKm: e.target.value })}
+          />
+          <p className="mt-1 text-xs text-slate-500">
+            Customers only see services within this distance of their primary location / GPS. Default is 20 km.
+          </p>
         </div>
         <button disabled={savingPlatform} className="btn-primary flex items-center gap-2 px-5 py-2.5">
           {savingPlatform && <Spinner className="h-4 w-4" />} Save settings

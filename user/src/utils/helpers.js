@@ -6,6 +6,17 @@ export const formatCurrency = (amount = 0) =>
 export const formatDate = (date) =>
   date ? new Date(date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : ''
 
+/** Append lat/lng/city from browsing location onto URLSearchParams */
+export const appendLocationParams = (params, location) => {
+  if (!location) return params
+  if (location.lat != null && location.lng != null) {
+    params.set('lat', String(location.lat))
+    params.set('lng', String(location.lng))
+  }
+  if (location.city) params.set('city', location.city)
+  return params
+}
+
 /** Display "09:00" / "14:00" as "9:00 AM" / "2:00 PM" */
 export const formatTime = (time) => {
   if (!time) return ''

@@ -279,10 +279,18 @@ export const getSettings = asyncHandler(async (req, res) => {
 // @route PUT /api/admin/settings
 export const updateSettings = asyncHandler(async (req, res) => {
   const settings = await Settings.getSingleton()
-  const { siteName, supportEmail, commission } = req.body
+  const { siteName, supportEmail, commission, serviceRadiusKm } = req.body
   if (siteName !== undefined) settings.siteName = siteName
   if (supportEmail !== undefined) settings.supportEmail = supportEmail
   if (commission !== undefined) settings.commission = commission
+  if (serviceRadiusKm !== undefined) {
+    const radius = Number(serviceRadiusKm)
+    if (!Number.isFinite(radius) || radius < 1 || radius > 500) {
+      res.status(400)
+      throw new Error('Service radius must be between 1 and 500 km')
+    }
+    settings.serviceRadiusKm = radius
+  }
   await settings.save()
   res.json({ success: true, settings })
 })
