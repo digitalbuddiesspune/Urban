@@ -53,6 +53,8 @@ const ServiceDetails = () => {
       .then(async (r) => {
         const s = r.data.service
         setService(s)
+        // Backend may return the nearest vendor's variant of this service.
+        setActiveId(String(s._id))
         const categoryId = s.categoryId?._id || s.categoryId
         if (!categoryId) {
           setSiblings([s])
@@ -65,8 +67,30 @@ const ServiceDetails = () => {
         }
         const list = await api.get(`/user/services?${listParams.toString()}`)
         const services = list.data.services || []
-        const hasCurrent = services.some((item) => String(item._id) === String(s._id))
-        setSiblings(hasCurrent ? services : [s, ...services])
+
+        // Same service offered by multiple vendors → keep only the nearest one.
+        const byTitle = new Map()
+        for (const item of services) {
+          const key = (item.title || '').trim().toLowerCase()
+          const existing = byTitle.get(key)
+          const isCurrent = String(item._id) === String(s._id)
+          if (!existing) {
+            byTitle.set(key, item)
+            continue
+          }
+          const existingIsCurrent = String(existing._id) === String(s._id)
+          if (existingIsCurrent) continue
+          if (
+            isCurrent ||
+            (item.distanceKm != null &&
+              (existing.distanceKm == null || item.distanceKm < existing.distanceKm))
+          ) {
+            byTitle.set(key, item)
+          }
+        }
+        const deduped = [...byTitle.values()]
+        const hasCurrent = deduped.some((item) => String(item._id) === String(s._id))
+        setSiblings(hasCurrent ? deduped : [s, ...deduped])
       })
       .catch(() => {
         setService(null)
@@ -163,7 +187,7 @@ const ServiceDetails = () => {
     .filter(Boolean)
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-slate-50 pb-28 lg:pb-10">
+    <div className="min-h-screen overflow-x-clip bg-slate-50 pb-28 lg:pb-10">
       <div className="border-b border-slate-200 bg-white">
         <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 sm:px-6">
           <button

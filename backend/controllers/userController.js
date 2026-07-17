@@ -109,22 +109,52 @@ export const getServices = asyncHandler(async (req, res) => {
   })
 })
 
-// @desc Get single service details (includes distance when lat/lng query provided)
+// @desc Get single service details (includes distance when lat/lng query provided).
+//       When the same service is offered by multiple vendors, the nearest
+//       vendor's offering is returned.
 // @route GET /api/user/services/:id
 export const getServiceById = asyncHandler(async (req, res) => {
-  const service = await Service.findById(req.params.id)
+  let service = await Service.findById(req.params.id)
     .populate('categoryId', 'name')
-    .populate('vendorId', 'name businessName rating serviceAreas city address location')
+    .populate('vendorId', 'name businessName rating serviceAreas city address location status')
   if (!service) {
     res.status(404)
     throw new Error('Service not found')
   }
 
   const userLoc = parseLatLng(req.query.lat, req.query.lng)
-  let distanceKm = null
-  const coords = service.vendorId?.location?.coordinates
-  if (userLoc && Array.isArray(coords) && coords.length === 2) {
-    distanceKm = haversineKm(userLoc.lat, userLoc.lng, coords[1], coords[0])
+
+  const distanceFor = (svc) => {
+    const coords = svc.vendorId?.location?.coordinates
+    if (userLoc && Array.isArray(coords) && coords.length === 2) {
+      return haversineKm(userLoc.lat, userLoc.lng, coords[1], coords[0])
+    }
+    return null
+  }
+
+  let distanceKm = distanceFor(service)
+
+  // If other vendors offer the same service, switch to the nearest one.
+  if (userLoc) {
+    const variants = await Service.find({
+      _id: { $ne: service._id },
+      title: service.title,
+      categoryId: service.categoryId?._id || service.categoryId,
+      status: 'approved',
+      isActive: true,
+      availability: true,
+    })
+      .populate('categoryId', 'name')
+      .populate('vendorId', 'name businessName rating serviceAreas city address location status')
+
+    for (const variant of variants) {
+      if (!variant.vendorId || variant.vendorId.status === 'blocked') continue
+      const d = distanceFor(variant)
+      if (d != null && (distanceKm == null || d < distanceKm)) {
+        service = variant
+        distanceKm = d
+      }
+    }
   }
 
   const reviews = await Review.find({ serviceId: service._id })
